@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  # The main database for patient data (Mothers/Infants)
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: securepassword
+      POSTGRES_DB: biobaby_db
+
+  # The log store for High-Speed sensor data (Movement logs)
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+
+  # MQTT Broker for Real-Time Tag Communication
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf

@@ -1,0 +1,2 @@
+/home/omarsl530/Projects/Infant-Stack/mqtt_to_db.py:71: DeprecationWarning: Callback API version 1 is deprecated, update to latest version
+  client = mqtt.Client()

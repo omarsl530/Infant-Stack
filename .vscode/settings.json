@@ -1,0 +1,22 @@
+{
+    "terminal.integrated.profiles.linux": {
+
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        }
+    },
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "username": "admin",
+            "database": "biobaby_db",
+            "name": "DB",
+            "password": "securepassword"
+        }
+    ]
+}
