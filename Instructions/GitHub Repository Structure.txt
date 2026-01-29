@@ -1,0 +1,125 @@
+infant-security-ecosystem/
+│
+├── docs/
+│   ├── architecture/
+│   │   ├── system-architecture.md
+│   │   ├── backend-architecture.md
+│   │   ├── firmware-architecture.md
+│   │   ├── hardware-architecture.md
+│   │   └── network-architecture.md
+│   │
+│   ├── specifications/
+│   │   ├── SSD-system-specification-document.md
+│   │   ├── functional-requirements.md
+│   │   ├── compliance-requirements.md
+│   │   ├── api-specification.md
+│   │   └── database-schema.md
+│   │
+│   ├── design/
+│   │   ├── ui-wireframes/
+│   │   ├── dashboard-designs/
+│   │   └── gate-terminal-ui/
+│   │
+│   ├── project-management/
+│   │   ├── roadmap.md
+│   │   ├── gantt-chart.png
+│   │   ├── sprint-plans/
+│   │   └── risk-register.md
+│   │
+│   └── tender/
+│       ├── proposal.pdf
+│       ├── rfp-response.docx
+│       ├── commercial-offer.md
+│       └── sfda-technical-file/
+│
+├── backend/
+│   ├── services/
+│   │   ├── device-gateway/
+│   │   ├── rtls-service/
+│   │   ├── pairing-service/
+│   │   ├── gate-authorization-service/
+│   │   ├── event-alarm-service/
+│   │   ├── biometric-service/
+│   │   ├── user-role-service/
+│   │   └── audit-service/
+│   │
+│   ├── api-gateway/
+│   ├── shared-libraries/
+│   ├── database/
+│   │   ├── migrations/
+│   │   ├── seed-data/
+│   │   └── orm-models/
+│   │
+│   ├── tests/
+│   └── docker/
+│
+├── firmware/
+│   ├── infant-tag/
+│   │   ├── bootloader/
+│   │   ├── application/
+│   │   ├── drivers/
+│   │   └── tests/
+│   │
+│   ├── mother-tag/
+│   ├── rtls-reader/
+│   ├── gate-terminal/
+│   ├── alarm-node/
+│   └── footprint-scanner/
+│
+├── hardware/
+│   ├── infant-tag/
+│   │   ├── schematics/
+│   │   ├── pcb-layout/
+│   │   ├── enclosure-cad/
+│   │   └── bom/
+│   │
+│   ├── mother-tag/
+│   ├── rtls-reader/
+│   ├── gate-terminal/
+│   ├── alarm-node/
+│   └── footprint-scanner/
+│
+├── simulations/
+│   ├── infant-tag-simulator/
+│   ├── rtls-reader-simulator/
+│   ├── gate-terminal-simulator/
+│   ├── alarm-node-simulator/
+│   └── biometric-simulator/
+│
+├── dashboards/
+│   ├── nurse-dashboard/
+│   ├── security-dashboard/
+│   ├── admin-dashboard/
+│   └── shared-components/
+│
+├── mobile-app/
+│   ├── ios/
+│   ├── android/
+│   └── shared/
+│
+├── devops/
+│   ├── ci-cd/
+│   ├── kubernetes/
+│   ├── docker/
+│   ├── monitoring/
+│   ├── logging/
+│   └── infrastructure-as-code/
+│
+├── qa/
+│   ├── test-plans/
+│   ├── test-cases/
+│   ├── automation/
+│   └── reports/
+│
+├── tools/
+│   ├── provisioning-scripts/
+│   ├── device-flash-tools/
+│   └── diagnostics/
+│
+├── .github/
+│   ├── workflows/
+│   └── issue-templates/
+│
+├── LICENSE
+├── README.md
+└── CONTRIBUTING.md
