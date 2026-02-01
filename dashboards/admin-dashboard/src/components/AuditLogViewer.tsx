@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchAuditLogs, fetchAuditFilters } from '../api';
 import { AuditLogListResponse } from '../types';
-import { format } from 'date-fns';
 
 const AuditLogViewer: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogListResponse['items']>([]);
@@ -165,7 +164,7 @@ const AuditLogViewer: React.FC = () => {
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {format(new Date(log.created_at), 'MMM d, HH:mm:ss')}
+                      {new Date(log.created_at).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">

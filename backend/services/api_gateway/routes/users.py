@@ -16,7 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared_libraries.database import get_db
 from shared_libraries.logging import get_logger
 from shared_libraries.auth import require_admin
-from database.orm_models.models import User, Role, AuditLog
+from database.orm_models.models import User, AuditLog
+from database.orm_models.roles import Role as RoleModel
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -31,7 +32,7 @@ class UserBase(BaseModel):
     email: EmailStr
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
-    role: Role = Role.VIEWER
+    role: str = "viewer"  # Accepts role name
 
 
 class UserCreate(UserBase):
@@ -44,7 +45,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    role: Optional[Role] = None
+    role: Optional[str] = None
     is_active: Optional[bool] = None
 
 
@@ -54,13 +55,31 @@ class UserResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-    role: Role
+    role: str  # Returns role name
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime]
     
     class Config:
         from_attributes = True
+    
+    @classmethod
+    def model_validate(cls, obj: User) -> "UserResponse":
+        # Custom validator to handle role relationship -> string mapping if Pydantic doesn't auto-resolve
+        # Since 'role' in User is an object, and we want string.
+        # But wait, obj.role is a RoleModel. string conversion might get 'Role(...)' repr.
+        # using standard from_attributes might fail.
+        # We manually construct or help Pydantic.
+        return cls(
+            id=obj.id,
+            email=obj.email,
+            first_name=obj.first_name,
+            last_name=obj.last_name,
+            role=obj.role.name if obj.role else "unknown",
+            is_active=obj.is_active,
+            created_at=obj.created_at,
+            last_login=obj.last_login
+        )
 
 
 class UserListResponse(BaseModel):
@@ -79,7 +98,7 @@ class PasswordUpdate(BaseModel):
 
 class RoleAssignment(BaseModel):
     """Role assignment request."""
-    role: Role
+    role: str
 
 
 # =============================================================================
@@ -126,7 +145,7 @@ async def log_audit(
 async def list_users(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    role: Optional[Role] = Query(None),
+    role: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
     search: Optional[str] = Query(None, description="Search by name or email"),
     db: AsyncSession = Depends(get_db),
@@ -142,8 +161,9 @@ async def list_users(
     
     # Apply filters
     if role:
-        query = query.where(User.role == role)
-        count_query = count_query.where(User.role == role)
+        # Join Role to filter by name
+        query = query.join(User.role).where(RoleModel.name == role)
+        count_query = count_query.join(User.role).where(RoleModel.name == role)
     
     if is_active is not None:
         query = query.where(User.is_active == is_active)
@@ -164,6 +184,8 @@ async def list_users(
     
     # Apply pagination
     offset = (page - 1) * limit
+    # Need to eager load role for response
+    # lazy="joined" on relationship handles it, but good to be explicit if creating response explicitly
     query = query.order_by(User.created_at.desc()).offset(offset).limit(limit)
     
     result = await db.execute(query)
@@ -196,12 +218,21 @@ async def create_user(
             detail="User with this email already exists",
         )
     
+    # Resolve Role
+    role_result = await db.execute(select(RoleModel).where(RoleModel.name == user_data.role))
+    role_obj = role_result.scalar_one_or_none()
+    if not role_obj:
+         raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Role '{user_data.role}' not found",
+        )
+
     # Create user
     user = User(
         email=user_data.email,
         first_name=user_data.first_name,
         last_name=user_data.last_name,
-        role=user_data.role,
+        role=role_obj, # relationship assignment
         hashed_password=hash_password(user_data.password),
         is_active=True,
     )
@@ -212,7 +243,7 @@ async def create_user(
     # Audit log
     await log_audit(
         db, current_user.id, "create_user", "user", str(user.id),
-        {"email": user.email, "role": user.role.value},
+        {"email": user.email, "role": role_obj.name},
     )
     await db.commit()
     
@@ -274,23 +305,37 @@ async def update_user(
                 detail="Email already in use",
             )
     
+    # Resolve role if provided
+    role_obj = None
+    if user_data.role:
+        role_result = await db.execute(select(RoleModel).where(RoleModel.name == user_data.role))
+        role_obj = role_result.scalar_one_or_none()
+        if not role_obj:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Role '{user_data.role}' not found",
+            )
+
     # Apply updates
-    update_data = user_data.model_dump(exclude_unset=True)
+    update_data = user_data.model_dump(exclude_unset=True, exclude={"role"})
     if update_data:
         for key, value in update_data.items():
             setattr(user, key, value)
-        
-        await db.flush()
-        await db.refresh(user)
-        
-        # Audit log
-        await log_audit(
-            db, current_user.id, "update_user", "user", str(user.id),
-            {"updated_fields": list(update_data.keys())},
-        )
-        await db.commit()
-        
-        logger.info("user_updated", user_id=str(user.id))
+    
+    if role_obj:
+        user.role = role_obj
+
+    await db.flush()
+    await db.refresh(user)
+    
+    # Audit log (simplified)
+    await log_audit(
+        db, current_user.id, "update_user", "user", str(user.id),
+        {"updated_fields": list(update_data.keys()) + (["role"] if role_obj else [])},
+    )
+    await db.commit()
+    
+    logger.info("user_updated", user_id=str(user.id))
     
     return UserResponse.model_validate(user)
 
@@ -361,18 +406,26 @@ async def assign_role(
             detail="User not found",
         )
     
-    old_role = user.role
-    user.role = role_data.role
+    role_result = await db.execute(select(RoleModel).where(RoleModel.name == role_data.role))
+    role_obj = role_result.scalar_one_or_none()
+    if not role_obj:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Role '{role_data.role}' not found",
+            )
+    
+    old_role_name = user.role.name if user.role else "none"
+    user.role = role_obj
     
     # Audit log
     await log_audit(
         db, current_user.id, "assign_role", "user", str(user.id),
-        {"old_role": old_role.value, "new_role": role_data.role.value},
+        {"old_role": old_role_name, "new_role": role_obj.name},
     )
     await db.commit()
     await db.refresh(user)
     
-    logger.info("role_assigned", user_id=str(user.id), role=role_data.role.value)
+    logger.info("role_assigned", user_id=str(user.id), role=role_obj.name)
     
     return UserResponse.model_validate(user)
 

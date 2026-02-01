@@ -53,6 +53,7 @@ class CurrentUser(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     roles: List[str] = []
+    permissions: List[str] = [] # Flat list of "resource:action" or "*"
 
     def has_role(self, role: str) -> bool:
         """Check if user has a specific role."""
@@ -65,6 +66,56 @@ class CurrentUser(BaseModel):
     def is_admin(self) -> bool:
         """Check if user has admin role."""
         return self.has_role("admin")
+
+    def has_permission(self, permission: str) -> bool:
+        """Check for granular permission."""
+        if "*" in self.permissions: 
+            return True
+        
+        # Check direct match
+        if permission in self.permissions:
+            return True
+        
+        # Check wildcard resource match (e.g. "user:*" covers "user:read")
+        resource, action = permission.split(":", 1) if ":" in permission else (permission, "")
+        if f"{resource}:*" in self.permissions:
+            return True
+            
+        return False
+
+
+# ... JWKS Client ...
+
+
+# ... get_current_user ... (already updated logic, need to update return call)
+
+# ... (inside get_current_user return statement update needed in next Step via separate replace if not included here, but I can't easily target the middle of previous func unless I rewrite it or target class def separately)
+# I will update Class def here first.
+
+# ... require_permission ...
+
+def require_permission(permission: str):
+    """
+    Create a dependency that requires a specific granular permission.
+    """
+    async def permission_checker(
+        user: CurrentUser = Depends(get_current_user),
+    ) -> CurrentUser:
+        if not user.has_permission(permission):
+            logger.warning(
+                "access_denied_permission",
+                user_id=user.id,
+                required_permission=permission,
+                user_roles=user.roles,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions: {permission}",
+            )
+        return user
+        
+    return permission_checker
+
 
 
 class JWKSClient:
@@ -270,47 +321,24 @@ class Permissions:
     SYSTEM_CONFIG = "system:config"
 
 
-# Role to Permission Mapping
-ROLE_PERMISSIONS = {
-    "admin": [
-        # Admin has almost everything
-        Permissions.USER_READ, Permissions.USER_WRITE, Permissions.USER_DELETE,
-        Permissions.PATIENT_READ, Permissions.PATIENT_WRITE, Permissions.PATIENT_ADMIT, Permissions.PATIENT_DISCHARGE,
-        Permissions.GATE_READ, Permissions.GATE_CONTROL,
-        Permissions.ZONE_READ, Permissions.ZONE_WRITE,
-        Permissions.RTLS_READ, Permissions.RTLS_HISTORY,
-        Permissions.AUDIT_READ, Permissions.SYSTEM_CONFIG
-    ],
-    "nurse": [
-        # Nurse focuses on patients and monitoring
-        Permissions.PATIENT_READ, Permissions.PATIENT_WRITE, Permissions.PATIENT_ADMIT, Permissions.PATIENT_DISCHARGE,
-        Permissions.GATE_READ, # Can see if gates are open/closed
-        Permissions.RTLS_READ, Permissions.RTLS_HISTORY, # Can track patients
-        Permissions.USER_READ, # Can search for other staff
-    ],
-    "security": [
-        # Security focuses on structure and tracking
-        Permissions.GATE_READ, Permissions.GATE_CONTROL,
-        Permissions.ZONE_READ,
-        Permissions.RTLS_READ, Permissions.RTLS_HISTORY,
-        Permissions.PATIENT_READ, # Need to identify people
-        Permissions.AUDIT_READ, # review logs
-    ],
-    "viewer": [
-        # Read-only basics
-        Permissions.PATIENT_READ,
-        Permissions.RTLS_READ,
-        Permissions.GATE_READ,
-    ]
-}
+# Role to Permission Mapping removed - now dynamic from DB
 
-def get_permissions_for_roles(roles: List[str]) -> List[str]:
-    """Get unique list of permissions for a set of roles."""
-    perms = set()
-    for role in roles:
-        perms.update(ROLE_PERMISSIONS.get(role, []))
-    return list(perms)
 
+
+# =============================================================================
+# Dependencies
+# =============================================================================
+
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from shared_libraries.database import get_db
+from database.orm_models.models import User
+from database.orm_models.roles import Role
+
+# ... imports ...
+
+
+# ... (JWKS Client etc.)
 
 # =============================================================================
 # Dependencies
@@ -318,22 +346,84 @@ def get_permissions_for_roles(roles: List[str]) -> List[str]:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+    db = Depends(get_db), # Inject DB session
 ) -> CurrentUser:
     """
     FastAPI dependency to get the current authenticated user.
+    Verifies JWT AND fetches user permissions from Database.
     """
     token = credentials.credentials
     payload = await verify_token(token)
     
-    roles = extract_roles(payload)
+    # Fetch user from DB to get Custom Role permissions
+    # We use 'sub' as the stable ID linking Keycloak to our DB. 
+    # 'users.id' might need to match 'sub' or we assume 'id' is 'sub' (PGUUID).
+    # If users.id is auto-generated UUID, we need a mapping. 
+    # Usually Keycloak sub IS the UUID.
     
+    # We'll try to find user by ID == sub (assuming sync) OR email.
+    # Safe to assuming sub == id for now if that's the design, or email match.
+    # In this project, User.id is UUID. Payload.sub is UUID string.
+    
+    # We assume User.id IS the Keycloak ID (setup during registration).
+    # If not, we might need a lookup by email, but email can change.
+    # Let's try ID first.
+    
+    try:
+        user_uuid = payload.sub
+        # Use selectinload to fetch role and permissions eagerly
+        query = select(User).where(User.id == user_uuid).options(selectinload(User.role))
+        result = await db.execute(query)
+        db_user = result.scalar_one_or_none()
+        
+        # If user not in DB (first login?), we might fallback to Token roles or create JIT.
+        # For now, we assume user exists or fallback to Viewer.
+        
+        effective_roles = []
+        effective_permissions = []
+        
+        if db_user and db_user.role:
+            effective_roles = [db_user.role.name]
+            # Role permissions are stored as JSON: {"resource": ["read", "write"]} or wildcard
+            # We flatten this to ["resource:read", "resource:write"] or similar
+            perms = db_user.role.permissions
+            if perms:
+                for resource, actions in perms.items():
+                    if resource == "*":
+                        if "*" in actions:
+                            effective_permissions.append("*")
+                        else:
+                            for action in actions:
+                                effective_permissions.append(f"*:{action}")
+                    else:
+                        for action in actions:
+                            effective_permissions.append(f"{resource}:{action}")
+                            
+        else:
+            # Fallback to token roles just in case
+            effective_roles = extract_roles(payload)
+            # No permissions known for token roles unless we map them again (legacy)
+            # But we are moving away from legacy.
+            pass
+
+    except Exception as e:
+        logger.error("auth_db_lookup_failed", error=str(e))
+        # Fallback to token only
+        effective_roles = extract_roles(payload)
+        effective_permissions = []
+
+    # Map * permission to all basic ones if needed, or handle in checker.
+    
+    # Construct Enhanced CurrentUser
+    # We might need to extend CurrentUser class to hold permissions
     return CurrentUser(
         id=payload.sub,
         email=payload.email,
         username=payload.preferred_username,
         first_name=payload.given_name,
         last_name=payload.family_name,
-        roles=roles,
+        roles=effective_roles,
+        permissions=effective_permissions,
     )
 
 
@@ -344,26 +434,22 @@ def require_roles(required_roles: List[str], require_all: bool = False):
     async def role_checker(
         user: CurrentUser = Depends(get_current_user),
     ) -> CurrentUser:
+        # Check DB roles (populated in get_current_user)
         if require_all:
             has_required = all(role in user.roles for role in required_roles)
         else:
             has_required = any(role in user.roles for role in required_roles)
         
         if not has_required:
-            logger.warning(
-                "access_denied_role",
-                user_id=user.id,
-                required_roles=required_roles,
-                user_roles=user.roles,
-            )
+            logger.warning("access_denied_role", user=user.id, roles=user.roles, required=required_roles)
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions (Role)",
             )
-        
         return user
     
     return role_checker
+
 
 
 def require_permission(permission: str):
@@ -375,9 +461,7 @@ def require_permission(permission: str):
     async def permission_checker(
         user: CurrentUser = Depends(get_current_user),
     ) -> CurrentUser:
-        user_permissions = get_permissions_for_roles(user.roles)
-        
-        if permission not in user_permissions:
+        if not user.has_permission(permission):
             logger.warning(
                 "access_denied_permission",
                 user_id=user.id,

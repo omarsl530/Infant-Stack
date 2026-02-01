@@ -8,17 +8,22 @@ import {
   Cog6ToothIcon,
   ChartBarIcon,
   ArrowRightOnRectangleIcon,
+  MapIcon,
 } from '@heroicons/react/24/outline';
 import UserManagement from './components/UserManagement';
-import PermissionMatrix from './components/PermissionMatrix';
+// PermissionMatrix removed
+import RoleManager from './components/RoleManager';
 import AuditLogViewer from './components/AuditLogViewer';
+import ConfigEditor from './components/ConfigEditor';
+import ZoneEditor from './components/ZoneEditor';
 
-type NavSection = 'users' | 'roles' | 'audit' | 'config' | 'stats';
+type NavSection = 'users' | 'roles' | 'audit' | 'zones' | 'config' | 'stats';
 
 const navItems: { id: NavSection; label: string; icon: React.ElementType }[] = [
   { id: 'users', label: 'Users', icon: UsersIcon },
   { id: 'roles', label: 'Roles', icon: ShieldCheckIcon },
   { id: 'audit', label: 'Audit Logs', icon: ClipboardDocumentListIcon },
+  { id: 'zones', label: 'Zones', icon: MapIcon },
   { id: 'config', label: 'Configuration', icon: Cog6ToothIcon },
   { id: 'stats', label: 'Statistics', icon: ChartBarIcon },
 ];
@@ -118,9 +123,11 @@ function DashboardLayout() {
         <div className="flex-1 overflow-y-auto p-6">
           {activeSection === 'users' && <UserManagement />}
           
+import RoleManager from './components/RoleManager';
+// ...
           {activeSection === 'roles' && (
             <div className="p-2">
-              <PermissionMatrix />
+              <RoleManager />
             </div>
           )}
           
@@ -130,31 +137,16 @@ function DashboardLayout() {
             </div>
           )}
           
+          {activeSection === 'zones' && (
+             <div className="p-2">
+                 <ZoneEditor />
+             </div>
+          )}
+          
           {activeSection === 'config' && (
-            <div className="glass-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">System Configuration</h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="form-label">Alert Threshold (meters)</label>
-                    <input type="number" className="form-input" defaultValue="5.0" />
-                  </div>
-                  <div>
-                    <label className="form-label">Session Timeout (minutes)</label>
-                    <input type="number" className="form-input" defaultValue="30" />
-                  </div>
-                  <div>
-                    <label className="form-label">Tag Battery Alert Level (%)</label>
-                    <input type="number" className="form-input" defaultValue="20" />
-                  </div>
-                  <div>
-                    <label className="form-label">Position Update Interval (ms)</label>
-                    <input type="number" className="form-input" defaultValue="1000" />
-                  </div>
-                </div>
-                <button className="btn-primary">Save Configuration</button>
-              </div>
-            </div>
+             <div className="p-2">
+                 <ConfigEditor />
+             </div>
           )}
           
           {activeSection === 'stats' && (

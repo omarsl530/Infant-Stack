@@ -8,7 +8,6 @@ import type {
   Camera,
   Floorplan,
   PaginatedResponse,
-  WSEventType,
   WSMessage,
 } from './types';
 
@@ -64,6 +63,34 @@ export async function fetchRTLSPositions(params?: {
   // Otherwise use latest endpoint
   const response = await fetchJSON<{ positions: RTLSPosition[], total: number }>(`${API_BASE}/rtls/positions/latest?${searchParams}`);
   return response.positions;
+}
+
+export async function exportPositions(
+  from: string,
+  to: string,
+  tagId?: string,
+  floor?: string
+): Promise<void> {
+    const searchParams = new URLSearchParams({
+        from_time: from,
+        to_time: to,
+    });
+    if (tagId) searchParams.set('tag_id', tagId);
+    if (floor) searchParams.set('floor', floor);
+
+    const response = await fetch(`${API_BASE}/rtls/positions/export?${searchParams}`);
+    if (!response.ok) throw new Error('Export failed');
+    
+    // Create blob link to download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rtls_export_${from.replace(/[:.]/g, '-')}_${to.replace(/[:.]/g, '-')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
 }
 
 export async function fetchTagHistory(

@@ -97,6 +97,7 @@ export interface Alert {
   timestamp: string;
   entityType: 'gate' | 'tag' | 'zone' | 'system';
   entityId: string;
+  tagId?: string;
   message: string;
   metadata?: Record<string, unknown>;
   acknowledged: boolean;

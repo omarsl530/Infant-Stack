@@ -96,6 +96,52 @@ export async function resetUserPassword(userId: string): Promise<void> {
 }
 
 // =============================================================================
+// Roles API
+// =============================================================================
+
+import { Role, RoleCreate, RoleUpdate } from './types';
+
+export async function fetchRoles(): Promise<Role[]> {
+  const response = await fetch(`${API_BASE}/roles`);
+  return handleResponse<Role[]>(response);
+}
+
+export async function createRole(data: RoleCreate): Promise<Role> {
+  const response = await fetch(`${API_BASE}/roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<Role>(response);
+}
+
+export async function fetchRole(id: string): Promise<Role> {
+    const response = await fetch(`${API_BASE}/roles/${id}`);
+    return handleResponse<Role>(response);
+}
+
+export async function updateRole(id: string, data: RoleUpdate): Promise<Role> {
+  const response = await fetch(`${API_BASE}/roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<Role>(response);
+}
+
+export async function deleteRole(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/roles/${id}`, {
+    method: 'DELETE',
+  });
+  return handleResponse<void>(response);
+}
+
+export async function fetchAvailablePermissions(): Promise<string[]> {
+    const response = await fetch(`${API_BASE}/roles/permissions`);
+    return handleResponse<string[]>(response);
+}
+
+// =============================================================================
 // Audit Logs API
 // =============================================================================
 
@@ -156,6 +202,93 @@ export async function changePassword(currentPassword: string, newPassword: strin
     }),
   });
   return handleResponse<void>(response);
+}
+
+// =============================================================================
+// System Config API
+// =============================================================================
+
+import { ConfigResponse, ConfigUpdate, ConfigCreate } from './types';
+
+export async function fetchConfig(publicOnly = false): Promise<ConfigResponse[]> {
+  const query = publicOnly ? '?public_only=true' : '';
+  const response = await fetch(`${API_BASE}/config${query}`);
+  return handleResponse<ConfigResponse[]>(response);
+}
+
+export async function fetchConfigItem(key: string): Promise<ConfigResponse> {
+  const response = await fetch(`${API_BASE}/config/${key}`);
+  return handleResponse<ConfigResponse>(response);
+}
+
+export async function updateConfig(key: string, data: ConfigUpdate): Promise<ConfigResponse> {
+  const response = await fetch(`${API_BASE}/config/${key}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<ConfigResponse>(response);
+}
+
+export async function createConfig(data: ConfigCreate): Promise<ConfigResponse> {
+  const response = await fetch(`${API_BASE}/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<ConfigResponse>(response);
+}
+
+
+// =============================================================================
+// Zone & Floorplan API
+// =============================================================================
+
+import { Zone, ZoneCreate, ZoneUpdate, ZoneListResponse, Floorplan, FloorplanCreate, FloorplanListResponse } from './types';
+
+export async function fetchZones(floor?: string): Promise<ZoneListResponse> {
+  const query = floor ? `?floor=${floor}` : '';
+  const response = await fetch(`${API_BASE}/zones${query}`);
+  return handleResponse<ZoneListResponse>(response);
+}
+
+export async function createZone(data: ZoneCreate): Promise<Zone> {
+  const response = await fetch(`${API_BASE}/zones`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<Zone>(response);
+}
+
+export async function updateZone(id: string, data: ZoneUpdate): Promise<Zone> {
+  const response = await fetch(`${API_BASE}/zones/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<Zone>(response);
+}
+
+export async function deleteZone(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/zones/${id}`, {
+    method: 'DELETE',
+  });
+  return handleResponse<void>(response);
+}
+
+export async function fetchFloorplans(): Promise<FloorplanListResponse> {
+  const response = await fetch(`${API_BASE}/floorplans`);
+  return handleResponse<FloorplanListResponse>(response);
+}
+
+export async function createFloorplan(data: FloorplanCreate): Promise<Floorplan> {
+  const response = await fetch(`${API_BASE}/floorplans`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<Floorplan>(response);
 }
 
 export { ApiError };

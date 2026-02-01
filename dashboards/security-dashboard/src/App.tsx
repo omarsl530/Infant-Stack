@@ -9,6 +9,7 @@ import {
   SignalIcon,
   Bars3Icon,
   XMarkIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 import {
@@ -19,6 +20,8 @@ import {
   TimelineScrubber,
   CameraGrid,
   CameraStreamModal,
+  StatCard,
+  OperationsDashboard,
 } from './components';
 
 import { usePositionTracker, useAlertTracker, useGateEvents } from './hooks/useRealtimeData';
@@ -29,7 +32,8 @@ import {
   fetchFloorplans,
   acknowledgeAlert,
   dismissAlert,
-  escalateAlert
+  escalateAlert,
+  exportPositions
 } from './api';
 
 import type {
@@ -38,7 +42,6 @@ import type {
   Camera,
   Zone,
   Floorplan,
-  GateEvent,
   PlaybackState,
 } from './types';
 
@@ -46,38 +49,13 @@ import type {
 // Stat Card Component
 // =============================================================================
 
-function StatCard({ title, value, icon: Icon, color, trend }: {
-  title: string;
-  value: number | string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  trend?: { value: number; isUp: boolean };
-}) {
-  return (
-    <div className="glass-card p-5 transition-transform hover:scale-[1.02]">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-400 mb-1">{title}</p>
-          <p className="text-2xl font-bold">{value}</p>
-          {trend && (
-            <p className={`text-xs mt-1 ${trend.isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-              {trend.isUp ? '↑' : '↓'} {trend.value}% from yesterday
-            </p>
-          )}
-        </div>
-        <div className={`p-3 rounded-xl ${color}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
+// StatCard moved to components/StatCard.tsx
 
 // =============================================================================
 // Main App Component
 // =============================================================================
 
-type ActiveView = 'map' | 'gates' | 'cameras' | 'events';
+type ActiveView = 'map' | 'gates' | 'cameras' | 'events' | 'operations';
 
 export default function App() {
   // State
@@ -113,6 +91,22 @@ export default function App() {
     currentTime: new Date(),
     playbackSpeed: 1,
   });
+
+  const [historyRange, setHistoryRange] = useState({
+    start: new Date(Date.now() - 3600000),
+    end: new Date()
+  });
+
+  const handleExport = useCallback(async () => {
+    try {
+        await exportPositions(
+            historyRange.start.toISOString(), 
+            historyRange.end.toISOString()
+        );
+    } catch (err) {
+        console.error("Export failed:", err);
+    }
+  }, [historyRange]);
 
   // Clock update
   useEffect(() => {
@@ -197,12 +191,13 @@ export default function App() {
     { id: 'gates' as const, label: 'Gates', icon: RectangleGroupIcon },
     { id: 'cameras' as const, label: 'Cameras', icon: VideoCameraIcon },
     { id: 'events' as const, label: 'Events', icon: BellAlertIcon },
+    { id: 'operations' as const, label: 'Operations', icon: ChartBarIcon },
   ];
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-30 bg-slate-800/95 border-r border-slate-700/50 transition-all duration-300 ${
+      <aside className={`fixed inset-y-0 left-0 z-40 bg-slate-800/95 border-r border-slate-700/50 transition-all duration-300 ${
         isSidebarCollapsed ? 'w-20' : 'w-64'
       } ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="flex flex-col h-full">
@@ -254,7 +249,7 @@ export default function App() {
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -308,7 +303,7 @@ export default function App() {
         {/* Page Content */}
         <div className="p-6">
           {/* Stats Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatCard
               title="Active Tags"
               value={positions.length}
@@ -374,6 +369,7 @@ export default function App() {
                       positions={positions}
                       gates={gates}
                       zones={zones}
+                      alerts={alerts}
                       selectedTagId={selectedTag?.tagId}
                       showHeatmap={showHeatmap}
                       onTagClick={(pos) => setSelectedTag(pos)}
@@ -387,13 +383,15 @@ export default function App() {
                     isLive={playbackState.isLive}
                     isPlaying={playbackState.isPlaying}
                     currentTime={playbackState.currentTime}
-                    startTime={new Date(Date.now() - 3600000)}
-                    endTime={new Date()}
+                    startTime={historyRange.start}
+                    endTime={historyRange.end}
                     playbackSpeed={playbackState.playbackSpeed}
                     onToggleLive={() => setPlaybackState((s) => ({ ...s, isLive: !s.isLive }))}
                     onTogglePlay={() => setPlaybackState((s) => ({ ...s, isPlaying: !s.isPlaying }))}
                     onSeek={(time) => setPlaybackState((s) => ({ ...s, currentTime: time }))}
                     onSpeedChange={(speed) => setPlaybackState((s) => ({ ...s, playbackSpeed: speed }))}
+                    onRangeChange={(start, end) => setHistoryRange({ start, end })}
+                    onExport={handleExport}
                   />
                 </>
               )}
@@ -431,6 +429,18 @@ export default function App() {
                     onEventClick={(event) => console.log('Event clicked:', event)}
                   />
                 </div>
+              )}
+              
+              {activeView === 'operations' && (
+                <OperationsDashboard
+                  isRtlsConnected={isRtlsConnected}
+                  isAlertsConnected={isAlertsConnected}
+                  isEventsConnected={isEventsConnected}
+                  positions={positions}
+                  gates={gates}
+                  cameras={cameras}
+                  alerts={alerts}
+                />
               )}
             </div>
 

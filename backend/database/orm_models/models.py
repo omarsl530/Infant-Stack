@@ -207,14 +207,6 @@ class Alert(Base):
 # User Management
 # =============================================================================
 
-class Role(str, Enum):
-    """User roles for RBAC."""
-    ADMIN = "admin"
-    NURSE = "nurse"
-    SECURITY = "security"
-    VIEWER = "viewer"
-
-
 class User(Base):
     """System users with role-based access."""
     
@@ -227,7 +219,10 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255))
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
-    role: Mapped[Role] = mapped_column(SQLEnum(Role), default=Role.VIEWER)
+    role_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("roles.id"), nullable=True # Nullable for now to avoiding breaking if migration missed something, but ideally permissions rely on it
+    )
+    role: Mapped["Role"] = relationship("Role", lazy="joined")
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow
@@ -477,3 +472,33 @@ class Floorplan(Base):
         DateTime(timezone=True), default=datetime.utcnow
     )
 
+
+# =============================================================================
+# System Configuration
+# =============================================================================
+
+class ConfigType(str, Enum):
+    """Type of configuration value."""
+    STRING = "string"
+    INTEGER = "integer"
+    FLOAT = "float"
+    BOOLEAN = "boolean"
+    JSON = "json"
+
+
+class SystemConfig(Base):
+    """Dynamic system configuration settings."""
+    
+    __tablename__ = "system_config"
+
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)
+    type: Mapped[ConfigType] = mapped_column(SQLEnum(ConfigType))
+    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    is_public: Mapped[bool] = mapped_column(default=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    updated_by: Mapped[Optional[UUID]] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )

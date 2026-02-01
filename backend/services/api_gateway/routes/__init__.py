@@ -2,7 +2,7 @@
 
 from . import (
     alerts, cameras, gates, health, infants, mothers,
-    pairings, rtls, users, websocket, zones
+    pairings, rtls, users, websocket, zones, roles
 )
 
 __all__ = [
@@ -17,5 +17,6 @@ __all__ = [
     "users",
     "websocket",
     "zones",
+    "roles",
 ]
 

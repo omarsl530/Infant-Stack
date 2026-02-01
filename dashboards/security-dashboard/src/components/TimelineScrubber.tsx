@@ -14,6 +14,7 @@ interface TimelineScrubberProps {
   onSeek: (time: Date) => void;
   onSpeedChange: (speed: number) => void;
   onExport?: () => void;
+  onRangeChange?: (start: Date, end: Date) => void;
 }
 
 function formatTime(date: Date): string {
@@ -31,6 +32,12 @@ function formatDate(date: Date): string {
   });
 }
 
+// Helper to format Date for datetime-local input
+const toLocalISO = (date: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 export function TimelineScrubber({
   isLive,
   isPlaying,
@@ -43,6 +50,7 @@ export function TimelineScrubber({
   onSeek,
   onSpeedChange,
   onExport,
+  onRangeChange,
 }: TimelineScrubberProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState(0);
@@ -95,15 +103,36 @@ export function TimelineScrubber({
 
   return (
     <div className="timeline-container">
-      <div className="flex items-center justify-between mb-4">
-        {/* Left: Time display */}
+      <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+        {/* Left: Time Controls */}
         <div className="flex items-center gap-4">
-          <div className="text-lg font-mono font-medium">
-            {formatTime(currentTime)}
-          </div>
-          <div className="text-sm text-slate-400">
-            {formatDate(currentTime)}
-          </div>
+            <div className="flex flex-col gap-1">
+                <span className="text-xs text-slate-400">Range Start</span>
+                <input 
+                    type="datetime-local"
+                    className="bg-slate-800 border-none rounded text-xs text-slate-300 py-1"
+                    value={toLocalISO(startTime)}
+                    onChange={(e) => {
+                        if (onRangeChange && e.target.value) {
+                            onRangeChange(new Date(e.target.value), endTime);
+                        }
+                    }}
+                />
+            </div>
+            <span className="text-slate-500">to</span>
+            <div className="flex flex-col gap-1">
+                <span className="text-xs text-slate-400">Range End</span>
+                <input 
+                    type="datetime-local"
+                    className="bg-slate-800 border-none rounded text-xs text-slate-300 py-1"
+                    value={toLocalISO(endTime)}
+                    onChange={(e) => {
+                        if (onRangeChange && e.target.value) {
+                            onRangeChange(startTime, new Date(e.target.value));
+                        }
+                    }}
+                />
+            </div>
         </div>
 
         {/* Center: Controls */}

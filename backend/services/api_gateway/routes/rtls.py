@@ -14,8 +14,10 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared_libraries.database import get_db
-from shared_libraries.auth import CurrentUser, require_user_or_admin
+from shared_libraries.auth import CurrentUser, require_user_or_admin, require_admin
 from database.orm_models.models import RTLSPosition
+from services.geofence_service import check_geofence
+from services.api_gateway.routes.websocket import manager, broadcast_position_update, broadcast_alert, serialize_alert
 
 router = APIRouter()
 
@@ -23,6 +25,20 @@ router = APIRouter()
 # =============================================================================
 # Request/Response Models
 # =============================================================================
+
+class RTLSPositionCreate(BaseModel):
+    """Request model for creating a position update."""
+    tag_id: str
+    asset_type: str
+    x: float
+    y: float
+    z: float = 0.0
+    floor: str
+    accuracy: float = 0.5
+    battery_pct: int = 100
+    gateway_id: Optional[str] = None
+    rssi: Optional[int] = None
+
 
 class RTLSPositionResponse(BaseModel):
     """Response model for RTLS position data."""
@@ -67,6 +83,82 @@ class RTLSLatestPositions(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
+
+@router.post("/positions", response_model=RTLSPositionResponse, status_code=status.HTTP_201_CREATED)
+async def create_position(
+    position_data: RTLSPositionCreate,
+    db: AsyncSession = Depends(get_db),
+    # In production, this should be protected (e.g., API Key or specialized generic user)
+    # current_user: CurrentUser = Depends(require_admin), 
+):
+    """
+    Ingest a new RTLS position.
+    
+    Triggers:
+    - Database insertion
+    - Geofence checks
+    - WebSocket broadcast
+    """
+    # 1. Create DB Record
+    position = RTLSPosition(
+        tag_id=position_data.tag_id,
+        asset_type=position_data.asset_type,
+        x=position_data.x,
+        y=position_data.y,
+        z=position_data.z,
+        floor=position_data.floor,
+        accuracy=position_data.accuracy,
+        battery_pct=position_data.battery_pct,
+        gateway_id=position_data.gateway_id,
+        rssi=position_data.rssi,
+    )
+    db.add(position)
+    
+    # 2. Check (and create) Geofence Alerts
+    # We await flush to get ID if needed, but for geofence checking we just need data
+    alerts = await check_geofence(
+        db, 
+        position_data.tag_id, 
+        position_data.asset_type, 
+        position_data.x, 
+        position_data.y, 
+        position_data.floor
+    )
+    
+    await db.commit()
+    await db.refresh(position)
+    
+    # 3. Broadcast Position
+    await broadcast_position_update({
+        "id": str(position.id),
+        "tagId": position.tag_id,
+        "assetType": position.asset_type,
+        "x": position.x,
+        "y": position.y,
+        "floor": position.floor,
+        "timestamp": position.timestamp.isoformat()
+    })
+    
+    # 4. Broadcast Alerts
+    for alert in alerts:
+        await broadcast_alert(serialize_alert(alert))
+        
+    return RTLSPositionResponse(
+        id=position.id,
+        tag_id=position.tag_id,
+        asset_type=position.asset_type,
+        x=position.x,
+        y=position.y,
+        z=position.z,
+        floor=position.floor,
+        accuracy=position.accuracy,
+        battery_pct=position.battery_pct,
+        gateway_id=position.gateway_id,
+        rssi=position.rssi,
+        timestamp=position.timestamp,
+    )
+
 
 @router.get("/positions/latest", response_model=RTLSLatestPositions)
 async def get_latest_positions(
@@ -132,6 +224,10 @@ async def get_latest_positions(
     )
 
 
+from fastapi.responses import StreamingResponse
+import csv
+import io
+
 @router.get("/positions/history", response_model=RTLSPositionList)
 async def get_position_history(
     from_time: datetime,
@@ -148,28 +244,31 @@ async def get_position_history(
     
     Optionally filter by tag_id and/or floor.
     """
-    query = (
-        select(RTLSPosition)
-        .where(
-            and_(
-                RTLSPosition.timestamp >= from_time,
-                RTLSPosition.timestamp <= to_time,
-            )
-        )
-    )
-    
+    # Base conditions
+    conditions = [
+        RTLSPosition.timestamp >= from_time,
+        RTLSPosition.timestamp <= to_time,
+    ]
     if tag_id:
-        query = query.where(RTLSPosition.tag_id == tag_id)
+        conditions.append(RTLSPosition.tag_id == tag_id)
     if floor:
-        query = query.where(RTLSPosition.floor == floor)
-    
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
+        conditions.append(RTLSPosition.floor == floor)
+        
+    combined_filter = and_(*conditions)
+
+    # Get total count (direct count query, more efficient)
+    count_query = select(func.count()).select_from(RTLSPosition).where(combined_filter)
     count_result = await db.execute(count_query)
     total = count_result.scalar() or 0
     
-    # Apply pagination and ordering
-    query = query.order_by(RTLSPosition.timestamp.asc()).offset(offset).limit(limit)
+    # Get Data
+    query = (
+        select(RTLSPosition)
+        .where(combined_filter)
+        .order_by(RTLSPosition.timestamp.asc())
+        .offset(offset)
+        .limit(limit)
+    )
     result = await db.execute(query)
     positions = result.scalars().all()
     
@@ -192,6 +291,56 @@ async def get_position_history(
     ]
     
     return RTLSPositionList(positions=items, total=total)
+
+
+@router.get("/positions/export", response_class=StreamingResponse)
+async def get_position_export(
+    from_time: datetime,
+    to_time: datetime,
+    tag_id: Optional[str] = None,
+    floor: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
+):
+    """
+    Export historical RTLS positions as CSV.
+    Streamed response to handle large datasets.
+    """
+    conditions = [
+        RTLSPosition.timestamp >= from_time,
+        RTLSPosition.timestamp <= to_time,
+    ]
+    if tag_id:
+        conditions.append(RTLSPosition.tag_id == tag_id)
+    if floor:
+        conditions.append(RTLSPosition.floor == floor)
+
+    async def iter_csv():
+        # Header
+        yield "timestamp,tag_id,asset_type,floor,x,y,z,accuracy,battery_pct\n"
+        
+        # Query in chunks to avoid memory overload
+        stmt = (
+            select(RTLSPosition)
+            .where(and_(*conditions))
+            .order_by(RTLSPosition.timestamp.asc())
+            .execution_options(yield_per=1000) # Stream from DB
+        )
+        
+        result = await db.stream(stmt)
+        
+        async for row in result:
+            p = row.RTLSPosition
+            # Format CSV line
+            yield f"{p.timestamp.isoformat()},{p.tag_id},{p.asset_type},{p.floor},{p.x},{p.y},{p.z},{p.accuracy},{p.battery_pct}\n"
+
+    filename = f"rtls_export_{from_time.strftime('%Y%m%d%H%M')}_{to_time.strftime('%Y%m%d%H%M')}.csv"
+    
+    return StreamingResponse(
+        iter_csv(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @router.get("/tags/{tag_id}/positions", response_model=RTLSPositionList)

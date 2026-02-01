@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { User } from '../types';
+import { User, Role } from '../types';
 
 interface UserFormModalProps {
   user?: User;
+  roles?: Role[];
   onClose: () => void;
   onSubmit: (data: Partial<User> & { password?: string }) => Promise<void>;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSubmit }) => {
+const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     email: user?.email || '',
     first_name: user?.first_name || '',
@@ -130,12 +131,21 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSubmit }
                   <select
                     className="form-select mt-1 block w-full"
                     value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value })}
+                    onChange={e => setFormData({ ...formData, role: e.target.value as any })}
                   >
-                    <option value="viewer">Viewer</option>
-                    <option value="nurse">Nurse</option>
-                    <option value="security">Security</option>
-                    <option value="admin">Admin</option>
+                    {!formData.role && <option value="">Select a role</option>}
+                    {roles.length > 0 ? (
+                        roles.map(role => (
+                            <option key={role.id} value={role.name}>{role.name}</option>
+                        ))
+                    ) : (
+                        <>
+                            <option value="viewer">Viewer</option>
+                            <option value="nurse">Nurse</option>
+                            <option value="security">Security</option>
+                            <option value="admin">Admin</option>
+                        </>
+                    )}
                   </select>
                 </div>
 

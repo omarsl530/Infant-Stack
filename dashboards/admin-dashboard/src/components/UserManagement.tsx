@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -6,56 +6,16 @@ import {
   TrashIcon,
   KeyIcon,
 } from '@heroicons/react/24/outline';
-import { User } from '../types';
+import { User, Role } from '../types';
+import { fetchUsers, fetchRoles, createUser, updateUser, deleteUser, resetUserPassword, assignRole } from '../api';
 import UserFormModal from './UserFormModal';
 import ConfirmModal from './ConfirmModal';
 
-// Mock data for initial development
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@hospital.org',
-    first_name: 'Admin',
-    last_name: 'User',
-    role: 'admin',
-    is_active: true,
-    created_at: '2026-01-01T00:00:00Z',
-    last_login: '2026-02-01T12:00:00Z',
-  },
-  {
-    id: '2',
-    email: 'nurse.jane@hospital.org',
-    first_name: 'Jane',
-    last_name: 'Doe',
-    role: 'nurse',
-    is_active: true,
-    created_at: '2026-01-15T00:00:00Z',
-    last_login: '2026-02-01T10:30:00Z',
-  },
-  {
-    id: '3',
-    email: 'security.john@hospital.org',
-    first_name: 'John',
-    last_name: 'Smith',
-    role: 'security',
-    is_active: true,
-    created_at: '2026-01-20T00:00:00Z',
-    last_login: '2026-02-01T08:00:00Z',
-  },
-  {
-    id: '4',
-    email: 'viewer@hospital.org',
-    first_name: 'View',
-    last_name: 'Only',
-    role: 'viewer',
-    is_active: false,
-    created_at: '2026-01-25T00:00:00Z',
-    last_login: null,
-  },
-];
-
 export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -66,6 +26,26 @@ export default function UserManagement() {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    loadData();
+  }, []);
+  
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [usersData, rolesData] = await Promise.all([
+        fetchUsers(),
+        fetchRoles()
+      ]);
+      setUsers(usersData.users || []); // Assuming response wrapper
+      setRoles(rolesData);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter users
   const filteredUsers = users.filter((user) => {
     const matchesSearch = searchQuery
@@ -74,6 +54,7 @@ export default function UserManagement() {
         user.last_name.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
     
+    // Role filter is string based now
     const matchesRole = roleFilter ? user.role === roleFilter : true;
     const matchesStatus = statusFilter
       ? statusFilter === 'active' ? user.is_active : !user.is_active
@@ -82,43 +63,14 @@ export default function UserManagement() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  // Load users from API (uncomment for production)
-  // useEffect(() => {
-  //   loadUsers();
-  // }, []);
-  
-  // const loadUsers = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await fetchUsers();
-  //     setUsers(response.users);
-  //   } catch (error) {
-  //     console.error('Failed to load users:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const handleCreateUser = async (data: Partial<User> & { password?: string }) => {
     try {
-      // const newUser = await createUser(data);
-      // setUsers([newUser, ...users]);
-      
-      // Mock: add user locally
-      const newUser: User = {
-        email: data.email || '',
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        role: data.role || 'viewer',
-        is_active: data.is_active ?? true,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString(),
-        last_login: null,
-      };
+      const newUser = await createUser(data as any);
       setUsers([newUser, ...users]);
       setShowAddModal(false);
     } catch (error) {
       console.error('Failed to create user:', error);
+      throw error;
     }
   };
 
@@ -126,14 +78,25 @@ export default function UserManagement() {
     if (!editingUser) return;
     
     try {
-      // const updated = await updateUser(editingUser.id, data);
-      // setUsers(users.map((u) => u.id === updated.id ? updated : u));
+      // If role changed, call assignRole too
+      let updatedUser = { ...editingUser };
       
-      // Mock: update locally
-      setUsers(users.map((u) => u.id === editingUser.id ? { ...u, ...data } : u));
+      if (data.role && data.role !== editingUser.role) {
+         await assignRole(editingUser.id, data.role);
+         updatedUser.role = data.role;
+      }
+      
+      // Update other fields
+      if (Object.keys(data).some(k => k !== 'role')) {
+          const result = await updateUser(editingUser.id, data);
+          updatedUser = result;
+      }
+
+      setUsers(users.map((u) => u.id === editingUser.id ? updatedUser : u));
       setEditingUser(null);
     } catch (error) {
       console.error('Failed to update user:', error);
+      throw error; // Let modal handle it
     }
   };
 
@@ -141,9 +104,7 @@ export default function UserManagement() {
     if (!deletingUser) return;
     
     try {
-      // await deleteUser(deletingUser.id);
-      
-      // Mock: remove locally
+      await deleteUser(deletingUser.id);
       setUsers(users.filter((u) => u.id !== deletingUser.id));
       setDeletingUser(null);
     } catch (error) {
@@ -155,7 +116,7 @@ export default function UserManagement() {
     if (!resettingUser) return;
     
     try {
-      // await resetUserPassword(resettingUser.id);
+      await resetUserPassword(resettingUser.id);
       alert(`Password reset email sent to ${resettingUser.email}`);
       setResettingUser(null);
     } catch (error) {
@@ -166,6 +127,15 @@ export default function UserManagement() {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'Never';
     return new Date(dateStr).toLocaleString();
+  };
+
+  const getRoleBadgeColor = (roleName: string) => {
+      // Simple hashing for color consistency or predefined map
+      if (roleName === 'admin') return 'admin';
+      if (roleName === 'nurse') return 'nurse';
+      if (roleName === 'security') return 'security';
+      if (roleName === 'viewer') return 'slate';
+      return 'slate'; // Default for custom roles for now
   };
 
   return (
@@ -192,10 +162,9 @@ export default function UserManagement() {
             className="form-select"
           >
             <option value="">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="nurse">Nurse</option>
-            <option value="security">Security</option>
-            <option value="viewer">Viewer</option>
+            {roles.map(role => (
+                <option key={role.id} value={role.name}>{role.name}</option>
+            ))}
           </select>
 
           <select
@@ -217,6 +186,9 @@ export default function UserManagement() {
 
       {/* Users Table */}
       <div className="glass-card overflow-hidden">
+        {isLoading ? (
+             <div className="p-8 text-center text-slate-400">Loading users...</div>
+        ) : (
         <table className="admin-table">
           <thead>
             <tr>
@@ -235,11 +207,7 @@ export default function UserManagement() {
                 <td>
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold
-                      ${user.role === 'admin' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
-                        user.role === 'nurse' ? 'bg-gradient-to-br from-blue-500 to-blue-700' :
-                        user.role === 'security' ? 'bg-gradient-to-br from-orange-500 to-orange-700' :
-                        'bg-gradient-to-br from-slate-500 to-slate-700'
-                      }`}
+                      bg-gradient-to-br from-slate-500 to-slate-700`}
                     >
                       {user.first_name.charAt(0)}{user.last_name.charAt(0)}
                     </div>
@@ -250,7 +218,7 @@ export default function UserManagement() {
                 </td>
                 <td className="text-slate-300">{user.email}</td>
                 <td>
-                  <span className={`badge badge-${user.role}`}>{user.role}</span>
+                  <span className={`badge badge-${getRoleBadgeColor(user.role)}`}>{user.role}</span>
                 </td>
                 <td>
                   <span className={`badge ${user.is_active ? 'badge-active' : 'badge-inactive'}`}>
@@ -288,8 +256,9 @@ export default function UserManagement() {
             ))}
           </tbody>
         </table>
+        )}
         
-        {filteredUsers.length === 0 && (
+        {!isLoading && filteredUsers.length === 0 && (
           <div className="p-8 text-center text-slate-400">
             No users found matching your criteria.
           </div>
@@ -299,6 +268,7 @@ export default function UserManagement() {
       {/* Modals */}
       {showAddModal && (
         <UserFormModal
+          roles={roles}
           onClose={() => setShowAddModal(false)}
           onSubmit={handleCreateUser}
         />
@@ -307,6 +277,7 @@ export default function UserManagement() {
       {editingUser && (
         <UserFormModal
           user={editingUser}
+          roles={roles}
           onClose={() => setEditingUser(null)}
           onSubmit={handleUpdateUser}
         />
