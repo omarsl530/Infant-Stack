@@ -104,7 +104,7 @@ class DeviceGateway:
                 "message_received",
                 topic=topic,
                 tag_id=payload.get("tag_id"),
-                event=payload.get("event"),
+                event_type=payload.get("event"),
             )
 
             # Route message based on topic

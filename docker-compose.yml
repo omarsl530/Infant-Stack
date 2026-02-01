@@ -160,6 +160,8 @@ services:
         condition: service_healthy
     networks:
       - infant-stack-network
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   # API Gateway - REST API entry point
@@ -258,7 +260,6 @@ services:
       - api-gateway
     networks:
       - infant-stack-network
-
 
 # ==========================================================================
 # Volumes

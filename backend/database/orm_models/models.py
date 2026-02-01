@@ -385,9 +385,9 @@ class GateEvent(Base):
 
 class ZoneType(str, Enum):
     """Type of security zone."""
-    AUTHORIZED = "authorized"
-    RESTRICTED = "restricted"
-    EXIT = "exit"
+    AUTHORIZED = "AUTHORIZED"
+    RESTRICTED = "RESTRICTED"
+    EXIT = "EXIT"
 
 
 class Zone(Base):

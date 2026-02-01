@@ -10,10 +10,10 @@ from database.orm_models.models import (
     MovementLog,
     Pairing,
     PairingStatus,
-    Role,
     TagStatus,
     User,
 )
+from database.orm_models.roles import Role
 
 __all__ = [
     "Base",

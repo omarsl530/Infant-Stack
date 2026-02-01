@@ -108,7 +108,7 @@ export interface Zone {
   id: string;
   name: string;
   floor: string;
-  zone_type: 'authorized' | 'restricted' | 'exit';
+  zone_type: 'AUTHORIZED' | 'RESTRICTED' | 'EXIT';
   polygon: { x: number; y: number }[];
   color: string | null;
   is_active: boolean;
@@ -164,9 +164,29 @@ export interface FloorplanListResponse {
 }
 
 // Navigation types
+
+// Link/Nav types
 export interface NavItem {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   path?: string;
+}
+
+// Stats types
+export interface DashboardStats {
+  users: {
+    total: number;
+    active_sessions: number;
+    new_this_month: number;
+  };
+  tags: {
+    total_active: number;
+    infants: number;
+    mothers: number;
+  };
+  alerts: {
+    today: number;
+    unacknowledged: number;
+  };
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
 import ProtectedRoute from './components/ProtectedRoute';
 import {
@@ -16,6 +16,8 @@ import RoleManager from './components/RoleManager';
 import AuditLogViewer from './components/AuditLogViewer';
 import ConfigEditor from './components/ConfigEditor';
 import ZoneEditor from './components/ZoneEditor';
+import { fetchDashboardStats } from './api';
+import { DashboardStats } from './types';
 
 type NavSection = 'users' | 'roles' | 'audit' | 'zones' | 'config' | 'stats';
 
@@ -30,8 +32,25 @@ const navItems: { id: NavSection; label: string; icon: React.ElementType }[] = [
 
 function DashboardLayout() {
   const [activeSection, setActiveSection] = useState<NavSection>('users');
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const auth = useAuth();
   const user = auth.user?.profile;
+
+  const loadStats = async () => {
+    try {
+      const data = await fetchDashboardStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to load dashboard stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
+    // Refresh stats every 30 seconds
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen flex">
@@ -110,11 +129,11 @@ function DashboardLayout() {
           <div className="flex items-center gap-6">
             <div className="text-right">
               <p className="text-xs text-slate-500">Total Users</p>
-              <p className="text-lg font-semibold text-white">24</p>
+              <p className="text-lg font-semibold text-white">{stats?.users.total || '-'}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-500">Active Sessions</p>
-              <p className="text-lg font-semibold text-emerald-400">12</p>
+              <p className="text-lg font-semibold text-emerald-400">{stats?.users.active_sessions || '-'}</p>
             </div>
           </div>
         </header>
@@ -123,8 +142,6 @@ function DashboardLayout() {
         <div className="flex-1 overflow-y-auto p-6">
           {activeSection === 'users' && <UserManagement />}
           
-import RoleManager from './components/RoleManager';
-// ...
           {activeSection === 'roles' && (
             <div className="p-2">
               <RoleManager />
@@ -153,18 +170,24 @@ import RoleManager from './components/RoleManager';
             <div className="grid grid-cols-3 gap-6">
               <div className="glass-card p-6">
                 <p className="text-sm text-slate-400">Total Users</p>
-                <p className="text-3xl font-bold text-white mt-2">24</p>
-                <p className="text-xs text-emerald-400 mt-1">+3 this month</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats?.users.total || 0}</p>
+                <p className="text-xs text-emerald-400 mt-1">
+                  {stats?.users.new_this_month ? `+${stats.users.new_this_month} this month` : 'No new users'}
+                </p>
               </div>
               <div className="glass-card p-6">
                 <p className="text-sm text-slate-400">Active Tags</p>
-                <p className="text-3xl font-bold text-white mt-2">156</p>
-                <p className="text-xs text-slate-400 mt-1">89 infants, 67 mothers</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats?.tags.total_active || 0}</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {stats ? `${stats.tags.infants} infants, ${stats.tags.mothers} mothers` : 'Loading...'}
+                </p>
               </div>
               <div className="glass-card p-6">
                 <p className="text-sm text-slate-400">Alerts Today</p>
-                <p className="text-3xl font-bold text-white mt-2">7</p>
-                <p className="text-xs text-amber-400 mt-1">2 unacknowledged</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats?.alerts.today || 0}</p>
+                <p className="text-xs text-amber-400 mt-1">
+                  {stats?.alerts.unacknowledged || 0} unacknowledged
+                </p>
               </div>
             </div>
           )}

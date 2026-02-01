@@ -6,6 +6,48 @@ import { User, UserListResponse, UserCreateRequest, UserUpdateRequest, AuditLogL
 
 const API_BASE = '/api/v1';
 
+/**
+ * Helper to get the OIDC user from session storage
+ */
+function getStoredUser() {
+  // Try exact key first
+  const oidcKey = `oidc.user:http://localhost:8080/realms/infant-stack:infant-stack-spa`;
+  let stored = sessionStorage.getItem(oidcKey);
+  
+  // If not found, look for any key starting with oidc.user
+  if (!stored) {
+    for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('oidc.user:')) {
+            stored = sessionStorage.getItem(key);
+            break;
+        }
+    }
+  }
+
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Helper for authenticated fetch requests
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const user = getStoredUser();
+  const token = user?.access_token;
+  
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  return fetch(url, { ...options, headers });
+}
+
 class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -15,8 +57,22 @@ class ApiError extends Error {
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-    throw new ApiError(response.status, error.detail || 'Request failed');
+    const errorBody = await response.json().catch(() => null);
+    console.error('API Error Response:', JSON.stringify(errorBody, null, 2));
+    
+    let message = 'Request failed';
+    if (errorBody?.detail) {
+        if (typeof errorBody.detail === 'string') {
+            message = errorBody.detail;
+        } else if (Array.isArray(errorBody.detail)) {
+            // Pydantic validation errors
+            message = errorBody.detail.map((e: any) => `${e.loc.join('.')}: ${e.msg}`).join(', ');
+        } else {
+            message = JSON.stringify(errorBody.detail);
+        }
+    }
+    
+    throw new ApiError(response.status, message);
   }
   
   // Handle 204 No Content
@@ -45,17 +101,17 @@ export async function fetchUsers(params?: {
   if (params?.is_active !== undefined) query.set('is_active', params.is_active.toString());
   if (params?.search) query.set('search', params.search);
   
-  const response = await fetch(`${API_BASE}/users?${query}`);
+  const response = await authFetch(`${API_BASE}/users?${query}`);
   return handleResponse<UserListResponse>(response);
 }
 
 export async function fetchUser(id: string): Promise<User> {
-  const response = await fetch(`${API_BASE}/users/${id}`);
+  const response = await authFetch(`${API_BASE}/users/${id}`);
   return handleResponse<User>(response);
 }
 
 export async function createUser(data: UserCreateRequest): Promise<User> {
-  const response = await fetch(`${API_BASE}/users`, {
+  const response = await authFetch(`${API_BASE}/users`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -64,7 +120,7 @@ export async function createUser(data: UserCreateRequest): Promise<User> {
 }
 
 export async function updateUser(id: string, data: UserUpdateRequest): Promise<User> {
-  const response = await fetch(`${API_BASE}/users/${id}`, {
+  const response = await authFetch(`${API_BASE}/users/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -73,14 +129,14 @@ export async function updateUser(id: string, data: UserUpdateRequest): Promise<U
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/users/${id}`, {
+  const response = await authFetch(`${API_BASE}/users/${id}`, {
     method: 'DELETE',
   });
   return handleResponse<void>(response);
 }
 
 export async function assignRole(userId: string, role: string): Promise<User> {
-  const response = await fetch(`${API_BASE}/users/${userId}/role`, {
+  const response = await authFetch(`${API_BASE}/users/${userId}/role`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ role }),
@@ -89,7 +145,7 @@ export async function assignRole(userId: string, role: string): Promise<User> {
 }
 
 export async function resetUserPassword(userId: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/users/${userId}/reset-password`, {
+  const response = await authFetch(`${API_BASE}/users/${userId}/reset-password`, {
     method: 'POST',
   });
   return handleResponse<void>(response);
@@ -102,12 +158,12 @@ export async function resetUserPassword(userId: string): Promise<void> {
 import { Role, RoleCreate, RoleUpdate } from './types';
 
 export async function fetchRoles(): Promise<Role[]> {
-  const response = await fetch(`${API_BASE}/roles`);
+  const response = await authFetch(`${API_BASE}/roles`);
   return handleResponse<Role[]>(response);
 }
 
 export async function createRole(data: RoleCreate): Promise<Role> {
-  const response = await fetch(`${API_BASE}/roles`, {
+  const response = await authFetch(`${API_BASE}/roles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -116,12 +172,12 @@ export async function createRole(data: RoleCreate): Promise<Role> {
 }
 
 export async function fetchRole(id: string): Promise<Role> {
-    const response = await fetch(`${API_BASE}/roles/${id}`);
+    const response = await authFetch(`${API_BASE}/roles/${id}`);
     return handleResponse<Role>(response);
 }
 
 export async function updateRole(id: string, data: RoleUpdate): Promise<Role> {
-  const response = await fetch(`${API_BASE}/roles/${id}`, {
+  const response = await authFetch(`${API_BASE}/roles/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -130,14 +186,14 @@ export async function updateRole(id: string, data: RoleUpdate): Promise<Role> {
 }
 
 export async function deleteRole(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/roles/${id}`, {
+  const response = await authFetch(`${API_BASE}/roles/${id}`, {
     method: 'DELETE',
   });
   return handleResponse<void>(response);
 }
 
 export async function fetchAvailablePermissions(): Promise<string[]> {
-    const response = await fetch(`${API_BASE}/roles/permissions`);
+    const response = await authFetch(`${API_BASE}/roles/permissions`);
     return handleResponse<string[]>(response);
 }
 
@@ -165,12 +221,12 @@ export async function fetchAuditLogs(params?: {
   if (params?.from) query.set('from_time', params.from);
   if (params?.to) query.set('to_time', params.to);
   
-  const response = await fetch(`${API_BASE}/audit-logs?${query}`);
+  const response = await authFetch(`${API_BASE}/audit-logs?${query}`);
   return handleResponse<AuditLogListResponse>(response);
 }
 
 export async function fetchAuditFilters(): Promise<{ actions: string[], resource_types: string[] }> {
-  const response = await fetch(`${API_BASE}/audit-logs/filters`);
+  const response = await authFetch(`${API_BASE}/audit-logs/filters`);
   return handleResponse<{ actions: string[], resource_types: string[] }>(response);
 }
 
@@ -179,12 +235,12 @@ export async function fetchAuditFilters(): Promise<{ actions: string[], resource
 // =============================================================================
 
 export async function fetchCurrentUser(): Promise<User> {
-  const response = await fetch(`${API_BASE}/users/me`);
+  const response = await authFetch(`${API_BASE}/users/me`);
   return handleResponse<User>(response);
 }
 
 export async function updateCurrentUser(data: UserUpdateRequest): Promise<User> {
-  const response = await fetch(`${API_BASE}/users/me`, {
+  const response = await authFetch(`${API_BASE}/users/me`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -193,7 +249,7 @@ export async function updateCurrentUser(data: UserUpdateRequest): Promise<User> 
 }
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/users/me/password`, {
+  const response = await authFetch(`${API_BASE}/users/me/password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -212,17 +268,17 @@ import { ConfigResponse, ConfigUpdate, ConfigCreate } from './types';
 
 export async function fetchConfig(publicOnly = false): Promise<ConfigResponse[]> {
   const query = publicOnly ? '?public_only=true' : '';
-  const response = await fetch(`${API_BASE}/config${query}`);
+  const response = await authFetch(`${API_BASE}/config${query}`);
   return handleResponse<ConfigResponse[]>(response);
 }
 
 export async function fetchConfigItem(key: string): Promise<ConfigResponse> {
-  const response = await fetch(`${API_BASE}/config/${key}`);
+  const response = await authFetch(`${API_BASE}/config/${key}`);
   return handleResponse<ConfigResponse>(response);
 }
 
 export async function updateConfig(key: string, data: ConfigUpdate): Promise<ConfigResponse> {
-  const response = await fetch(`${API_BASE}/config/${key}`, {
+  const response = await authFetch(`${API_BASE}/config/${key}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -231,7 +287,7 @@ export async function updateConfig(key: string, data: ConfigUpdate): Promise<Con
 }
 
 export async function createConfig(data: ConfigCreate): Promise<ConfigResponse> {
-  const response = await fetch(`${API_BASE}/config`, {
+  const response = await authFetch(`${API_BASE}/config`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -248,12 +304,12 @@ import { Zone, ZoneCreate, ZoneUpdate, ZoneListResponse, Floorplan, FloorplanCre
 
 export async function fetchZones(floor?: string): Promise<ZoneListResponse> {
   const query = floor ? `?floor=${floor}` : '';
-  const response = await fetch(`${API_BASE}/zones${query}`);
+  const response = await authFetch(`${API_BASE}/zones${query}`);
   return handleResponse<ZoneListResponse>(response);
 }
 
 export async function createZone(data: ZoneCreate): Promise<Zone> {
-  const response = await fetch(`${API_BASE}/zones`, {
+  const response = await authFetch(`${API_BASE}/zones`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -262,7 +318,7 @@ export async function createZone(data: ZoneCreate): Promise<Zone> {
 }
 
 export async function updateZone(id: string, data: ZoneUpdate): Promise<Zone> {
-  const response = await fetch(`${API_BASE}/zones/${id}`, {
+  const response = await authFetch(`${API_BASE}/zones/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -271,24 +327,35 @@ export async function updateZone(id: string, data: ZoneUpdate): Promise<Zone> {
 }
 
 export async function deleteZone(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/zones/${id}`, {
+  const response = await authFetch(`${API_BASE}/zones/${id}`, {
     method: 'DELETE',
   });
   return handleResponse<void>(response);
 }
 
 export async function fetchFloorplans(): Promise<FloorplanListResponse> {
-  const response = await fetch(`${API_BASE}/floorplans`);
+  const response = await authFetch(`${API_BASE}/floorplans`);
   return handleResponse<FloorplanListResponse>(response);
 }
 
 export async function createFloorplan(data: FloorplanCreate): Promise<Floorplan> {
-  const response = await fetch(`${API_BASE}/floorplans`, {
+  const response = await authFetch(`${API_BASE}/floorplans`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   return handleResponse<Floorplan>(response);
+}
+
+// =============================================================================
+// Stats API
+// =============================================================================
+
+import { DashboardStats } from './types';
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  const response = await authFetch(`${API_BASE}/stats/dashboard`);
+  return handleResponse<DashboardStats>(response);
 }
 
 export { ApiError };

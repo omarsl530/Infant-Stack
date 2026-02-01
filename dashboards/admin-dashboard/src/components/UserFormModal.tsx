@@ -44,8 +44,11 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
         first_name: formData.first_name,
         last_name: formData.last_name,
         role: formData.role,
-        is_active: formData.is_active,
       };
+
+      if (user) {
+        submitData.is_active = formData.is_active;
+      }
 
       if (formData.password) {
         submitData.password = formData.password;

@@ -38,6 +38,9 @@ async_session_factory = async_sessionmaker(
     expire_on_commit=False,
 )
 
+# Alias for backward compatibility with some services/middleware
+session_factory = async_session_factory
+
 sync_session_factory = sessionmaker(
     sync_engine,
     class_=Session,
