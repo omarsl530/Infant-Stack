@@ -1,26 +1,205 @@
 version: "3.8"
+
 services:
-  # The main database for patient data (Mothers/Infants)
+  # ==========================================================================
+  # Data Layer
+  # ==========================================================================
+
+  # Primary database for patient data (Mothers/Infants)
   postgres:
     image: postgres:15
+    container_name: infant-stack-postgres
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: securepassword
-      POSTGRES_DB: biobaby_db
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-securepassword}
+      POSTGRES_DB: ${POSTGRES_DB:-biobaby_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infant-stack-network
 
-  # The log store for High-Speed sensor data (Movement logs)
+  # Time-series log store for high-speed sensor data
   mongo:
     image: mongo:6
+    container_name: infant-stack-mongo
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: infant_stack_logs
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infant-stack-network
+
+  # Cache and session store
+  redis:
+    image: redis:7-alpine
+    container_name: infant-stack-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infant-stack-network
 
   # MQTT Broker for Real-Time Tag Communication
   mqtt:
-    image: eclipse-mosquitto
+    image: eclipse-mosquitto:2
+    container_name: infant-stack-mqtt
     ports:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt_data:/mosquitto/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mosquitto_sub",
+          "-t",
+          "$$SYS/#",
+          "-C",
+          "1",
+          "-i",
+          "healthcheck",
+          "-W",
+          "3",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - infant-stack-network
+
+  # ==========================================================================
+  # Backend Services
+  # ==========================================================================
+
+  # Device Gateway - MQTT to Database bridge
+  device-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: infant-stack-device-gateway
+    command: ["python", "-m", "services.device_gateway.main"]
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-securepassword}
+      - POSTGRES_DB=${POSTGRES_DB:-biobaby_db}
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - MONGODB_HOST=mongo
+      - REDIS_HOST=redis
+      - ENVIRONMENT=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt:
+        condition: service_healthy
+    networks:
+      - infant-stack-network
+    restart: unless-stopped
+
+  # API Gateway - REST API entry point
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: infant-stack-api-gateway
+    ports:
+      - "8000:8000"
+    command:
+      [
+        "uvicorn",
+        "services.api_gateway.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-securepassword}
+      - POSTGRES_DB=${POSTGRES_DB:-biobaby_db}
+      - MONGODB_HOST=mongo
+      - REDIS_HOST=redis
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me-in-production}
+      - ENVIRONMENT=development
+      - DEBUG=true
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - infant-stack-network
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Frontend Dashboards (Development)
+  # ==========================================================================
+
+  nurse-dashboard:
+    image: node:20-alpine
+    container_name: infant-stack-nurse-dashboard
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dashboards:/app
+    command: sh -c "cd nurse-dashboard && npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api-gateway
+    networks:
+      - infant-stack-network
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  mqtt_data:
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+
+networks:
+  infant-stack-network:
+    driver: bridge

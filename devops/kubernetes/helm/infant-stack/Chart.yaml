@@ -1,0 +1,15 @@
+apiVersion: v2
+name: infant-stack
+description: A Helm chart for deploying Infant-Stack hospital security ecosystem
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - infant
+  - security
+  - hospital
+  - iot
+  - rtls
+maintainers:
+  - name: Infant-Stack Team
+    email: team@infant-stack.dev

@@ -1,0 +1,126 @@
+# Default values for infant-stack
+
+# Global settings
+global:
+  environment: production
+  imageRegistry: ghcr.io
+
+# API Gateway
+apiGateway:
+  replicaCount: 2
+  image:
+    repository: infant-stack/backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Device Gateway
+deviceGateway:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+# Frontend Dashboards
+dashboards:
+  replicaCount: 2
+  image:
+    repository: infant-stack/dashboards
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+# PostgreSQL (using Bitnami chart)
+postgresql:
+  enabled: true
+  auth:
+    username: admin
+    password: securepassword
+    database: biobaby_db
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# MongoDB (using Bitnami chart)
+mongodb:
+  enabled: true
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# Redis (using Bitnami chart)
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# MQTT (Eclipse Mosquitto)
+mqtt:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 1883
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: infant-stack.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: dashboards
+    - host: api.infant-stack.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: api-gateway
+  tls:
+    - secretName: infant-stack-tls
+      hosts:
+        - infant-stack.example.com
+        - api.infant-stack.example.com
+
+# Security
+secrets:
+  jwtSecretKey: change-me-in-production
+
+# Monitoring
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false

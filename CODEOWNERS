@@ -1,0 +1,31 @@
+# CODEOWNERS - Define code ownership for pull request reviews
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @infant-stack/maintainers
+
+# Backend services
+/backend/ @infant-stack/backend-team
+/backend/services/device-gateway/ @infant-stack/iot-team
+/backend/services/biometric-service/ @infant-stack/security-team
+
+# Frontend dashboards
+/dashboards/ @infant-stack/frontend-team
+
+# Firmware and hardware
+/firmware/ @infant-stack/firmware-team
+/hardware/ @infant-stack/hardware-team
+
+# DevOps and infrastructure
+/devops/ @infant-stack/devops-team
+/.github/workflows/ @infant-stack/devops-team
+/docker-compose.yml @infant-stack/devops-team
+
+# Documentation
+/docs/ @infant-stack/docs-team
+README.md @infant-stack/maintainers
+CONTRIBUTING.md @infant-stack/maintainers
+
+# Security-sensitive files
+SECURITY.md @infant-stack/security-team
+/backend/services/user-role-service/ @infant-stack/security-team
