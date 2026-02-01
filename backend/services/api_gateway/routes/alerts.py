@@ -12,6 +12,7 @@ from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared_libraries.database import get_db
+from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from database.orm_models.models import Alert, AlertSeverity
 
 router = APIRouter()
@@ -42,6 +43,7 @@ async def list_alerts(
     acknowledged: Optional[bool] = False,
     severity: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> AlertList:
     """List all alerts with optional filtering."""
     query = select(Alert).order_by(Alert.created_at.desc())
@@ -77,6 +79,7 @@ async def list_alerts(
 async def acknowledge_alert(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_admin),  # Admin only
 ) -> dict:
     """Acknowledge an alert."""
     result = await db.execute(select(Alert).where(Alert.id == alert_id))
@@ -99,6 +102,7 @@ async def acknowledge_alert(
 async def dismiss_alert(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_admin),  # Admin only
 ) -> dict:
     """Dismiss (delete) an alert."""
     result = await db.execute(select(Alert).where(Alert.id == alert_id))

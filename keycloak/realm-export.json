@@ -1,0 +1,222 @@
+{
+  "id": "infant-stack",
+  "realm": "infant-stack",
+  "displayName": "Infant-Stack",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+  "actionTokenGeneratedByUserLifespan": 300,
+  "defaultSignatureAlgorithm": "RS256",
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator role with full CRUD access",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "user",
+        "description": "Regular user role with read and create access only",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "default-roles-infant-stack",
+        "description": "Default roles for new users",
+        "composite": true,
+        "composites": {
+          "realm": ["user"]
+        },
+        "clientRole": false
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin@example.com",
+      "email": "admin@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin", "user"]
+    },
+    {
+      "username": "user@example.com",
+      "email": "user@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Regular",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "infant-stack-spa",
+      "name": "Infant-Stack SPA",
+      "description": "Public client for Single Page Application",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "/",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3001/*",
+        "http://localhost:3002/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "infant-stack-admin",
+      "name": "Infant-Stack Admin Client",
+      "description": "Confidential client for backend admin operations",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "admin-client-secret-change-in-production",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [],
+      "webOrigins": [],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": []
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "roles",
+      "description": "OpenID Connect scope for roles",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Your user roles"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "browserSecurityHeaders": {
+    "contentSecurityPolicyReportOnly": "",
+    "xContentTypeOptions": "nosniff",
+    "referrerPolicy": "no-referrer",
+    "xRobotsTag": "none",
+    "xFrameOptions": "SAMEORIGIN",
+    "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';",
+    "xXSSProtection": "1; mode=block",
+    "strictTransportSecurity": "max-age=31536000; includeSubDomains"
+  }
+}

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy.orm import selectinload, joinedload
 from shared_libraries.database import get_db
+from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from database.orm_models.models import Infant, TagStatus, Pairing
 
 router = APIRouter()
@@ -59,6 +60,7 @@ async def list_infants(
     ward: Optional[str] = None,
     status: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> InfantList:
     """List all infants with optional filtering."""
     # 1. Fetch Infants
@@ -107,6 +109,7 @@ async def list_infants(
 async def create_infant(
     infant_data: InfantCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> InfantResponse:
     """Register a new infant with tag."""
     # Split name into first/last
@@ -155,6 +158,7 @@ async def create_infant(
 async def get_infant(
     infant_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> InfantResponse:
     """Get infant by ID."""
     result = await db.execute(select(Infant).where(Infant.id == infant_id))
@@ -182,6 +186,7 @@ async def get_infant(
 async def delete_infant(
     infant_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_admin),  # Admin only
 ) -> None:
     """Delete an infant and all associated pairings."""
     # Check infant exists

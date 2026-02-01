@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared_libraries.database import get_db
+from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from database.orm_models.models import Pairing, Infant, Mother, PairingStatus
 
 router = APIRouter()
@@ -61,6 +62,7 @@ async def list_pairings(
     status: Optional[str] = "active",
     page: int = 1,
     size: int = 20,
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> PairingList:
     """List all pairings with optional filtering."""
     # TODO: Implement database query
@@ -76,6 +78,7 @@ async def list_pairings(
 async def create_pairing(
     pairing_data: PairingCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> PairingResponse:
     """Create a new infant-mother pairing."""
     # 1. Validate Infant
@@ -131,6 +134,7 @@ async def create_pairing(
 async def get_pairing(
     pairing_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> PairingResponse:
     """Get a specific pairing by ID."""
     result = await db.execute(select(Pairing).where(Pairing.id == pairing_id))
@@ -166,6 +170,7 @@ async def get_pairing(
 async def delete_pairing(
     pairing_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_admin),  # Admin only
 ) -> None:
     """Delete a pairing (unpair infant from mother)."""
     result = await db.execute(select(Pairing).where(Pairing.id == pairing_id))

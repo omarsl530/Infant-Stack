@@ -7,8 +7,10 @@ import {
   XMarkIcon,
   UserIcon,
   HeartIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from './AuthContext';
 import * as api from './api';
 
 // =============================================================================
@@ -259,6 +261,7 @@ function AlertItem({ alert, onDismiss }: { alert: Alert; onDismiss: () => void }
 // =============================================================================
 
 export default function App() {
+  const { user, logout, isAdmin } = useAuth();
   const [infants, setInfants] = useState<Infant[]>([]);
   const [mothers, setMothers] = useState<Mother[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -495,6 +498,27 @@ export default function App() {
               >
                 <Cog6ToothIcon className="w-6 h-6" />
               </button>
+
+              {/* User Info & Logout */}
+              <div className="flex items-center gap-3 pl-4 border-l border-slate-700">
+                <div className="text-right">
+                  <p className="text-sm font-medium">{user?.fullName || 'User'}</p>
+                  <p className="text-xs text-slate-400">
+                    {isAdmin() ? (
+                      <span className="text-amber-400">Admin</span>
+                    ) : (
+                      <span className="text-blue-400">User</span>
+                    )}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => logout()}
+                  className="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                  title="Logout"
+                >
+                  <ArrowRightOnRectangleIcon className="w-6 h-6" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -686,7 +710,7 @@ export default function App() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">{selectedInfant.name}</h3>
-              <StatusBadge status={selectedInfant.motherTagId ? 'paired' : 'active'} />
+              <StatusBadge status={selectedInfant.motherTagId ? 'active' : 'inactive'} />
             </div>
             
             <div className="bg-slate-900/50 rounded-lg p-4 space-y-3">
@@ -749,26 +773,28 @@ export default function App() {
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="mt-4 pt-4 border-t border-slate-700 flex gap-2">
-              <button 
-                onClick={async () => {
-                  if (confirm('Are you sure you want to delete this baby? This cannot be undone.')) {
-                    try {
-                      await api.deleteInfant(selectedInfant.id);
-                      setSelectedInfant(null);
-                      await loadData();
-                    } catch (err) {
-                      setError('Failed to delete infant');
-                      setTimeout(() => setError(null), 3000);
+            {/* Action Buttons - Admin Only */}
+            {isAdmin() && (
+              <div className="mt-4 pt-4 border-t border-slate-700 flex gap-2">
+                <button 
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to delete this baby? This cannot be undone.')) {
+                      try {
+                        await api.deleteInfant(selectedInfant.id);
+                        setSelectedInfant(null);
+                        await loadData();
+                      } catch (err) {
+                        setError('Failed to delete infant');
+                        setTimeout(() => setError(null), 3000);
+                      }
                     }
-                  }
-                }}
-                className="flex-1 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg text-sm font-medium transition-colors"
-              >
-                Delete Baby
-              </button>
-            </div>
+                  }}
+                  className="flex-1 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Delete Baby
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Modal>
@@ -825,23 +851,25 @@ export default function App() {
                       <p className="text-sm font-medium">{mother.name}</p>
                       <p className="text-xs text-slate-400 font-mono">{mother.tagId}</p>
                     </div>
-                    <button
-                      onClick={async () => {
-                        if (confirm(`Delete ${mother.name}? This will also remove any pairings.`)) {
-                          try {
-                            await api.deleteMother(mother.id);
-                            await loadData();
-                          } catch (err) {
-                            setError('Failed to delete mother');
-                            setTimeout(() => setError(null), 3000);
+                    {isAdmin() && (
+                      <button
+                        onClick={async () => {
+                          if (confirm(`Delete ${mother.name}? This will also remove any pairings.`)) {
+                            try {
+                              await api.deleteMother(mother.id);
+                              await loadData();
+                            } catch (err) {
+                              setError('Failed to delete mother');
+                              setTimeout(() => setError(null), 3000);
+                            }
                           }
-                        }
-                      }}
-                      className="p-1.5 text-red-400 hover:bg-red-600/20 rounded transition-colors"
-                      title="Delete mother"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                        }}
+                        className="p-1.5 text-red-400 hover:bg-red-600/20 rounded transition-colors"
+                        title="Delete mother"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

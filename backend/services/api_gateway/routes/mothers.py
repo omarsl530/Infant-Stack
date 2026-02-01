@@ -14,6 +14,7 @@ from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.exc import IntegrityError
 
 from shared_libraries.database import get_db
+from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from database.orm_models.models import Mother, TagStatus, Pairing
 
 router = APIRouter()
@@ -50,6 +51,7 @@ class MotherList(BaseModel):
 @router.get("/", response_model=MotherList)
 async def list_mothers(
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> MotherList:
     """List all mothers."""
     # 1. Fetch Mothers
@@ -81,6 +83,7 @@ async def list_mothers(
 async def create_mother(
     mother_data: MotherCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> MotherResponse:
     """Register a new mother with tag."""
     # Split name into first/last
@@ -134,6 +137,7 @@ async def create_mother(
 async def get_mother(
     mother_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> MotherResponse:
     """Get mother by ID."""
     result = await db.execute(
@@ -163,6 +167,7 @@ async def get_mother(
 async def delete_mother(
     mother_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(require_admin),  # Admin only
 ) -> None:
     """Delete a mother and all associated pairings."""
     result = await db.execute(select(Mother).where(Mother.id == mother_id))

@@ -1,0 +1,15 @@
+<!doctype html>
+
+<!--
+ * Silent SSO check for Keycloak.
+ * This page is loaded in a hidden iframe to silently check for existing SSO sessions.
+ * It receives the authentication result from Keycloak and posts it back to the parent window.
+ -->
+
+<html>
+  <body>
+    <script>
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>
