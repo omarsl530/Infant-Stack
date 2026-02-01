@@ -264,3 +264,216 @@ class AuditLog(Base):
     __table_args__ = (
         Index("ix_audit_logs_user_created", "user_id", "created_at"),
     )
+
+
+# =============================================================================
+# RTLS Position Tracking
+# =============================================================================
+
+class RTLSPosition(Base):
+    """Real-time location system position data."""
+    
+    __tablename__ = "rtls_positions"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    tag_id: Mapped[str] = mapped_column(String(50), index=True)
+    asset_type: Mapped[str] = mapped_column(String(20))  # infant, mother, staff, equipment
+    x: Mapped[float] = mapped_column()
+    y: Mapped[float] = mapped_column()
+    z: Mapped[float] = mapped_column(default=0.0)
+    floor: Mapped[str] = mapped_column(String(20), index=True)
+    accuracy: Mapped[float] = mapped_column(default=0.5)
+    battery_pct: Mapped[int] = mapped_column(default=100)
+    gateway_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    rssi: Mapped[Optional[int]] = mapped_column(nullable=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, index=True
+    )
+
+    __table_args__ = (
+        Index("ix_rtls_positions_tag_timestamp", "tag_id", "timestamp"),
+        Index("ix_rtls_positions_floor_timestamp", "floor", "timestamp"),
+    )
+
+
+# =============================================================================
+# Gate and Access Control
+# =============================================================================
+
+class GateState(str, Enum):
+    """State of a security gate."""
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+    FORCED_OPEN = "FORCED_OPEN"
+    HELD_OPEN = "HELD_OPEN"
+    UNKNOWN = "UNKNOWN"
+
+
+class Gate(Base):
+    """Security gate/door entity."""
+    
+    __tablename__ = "gates"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    gate_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(100))
+    floor: Mapped[str] = mapped_column(String(20), index=True)
+    zone: Mapped[str] = mapped_column(String(50))
+    state: Mapped[GateState] = mapped_column(
+        SQLEnum(GateState, name="gate_state"), default=GateState.CLOSED
+    )
+    last_state_change: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+    camera_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    extra_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+
+
+class GateEventType(str, Enum):
+    """Types of gate events."""
+    BADGE_SCAN = "badge_scan"
+    GATE_STATE = "gate_state"
+    FORCED = "forced"
+    HELD_OPEN = "held_open"
+
+
+class GateEventResult(str, Enum):
+    """Result of a gate access attempt."""
+    GRANTED = "GRANTED"
+    DENIED = "DENIED"
+
+
+class GateEvent(Base):
+    """Event log for gate access and state changes."""
+    
+    __tablename__ = "gate_events"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    gate_id: Mapped[str] = mapped_column(String(50), index=True)
+    event_type: Mapped[GateEventType] = mapped_column(SQLEnum(GateEventType))
+    state: Mapped[Optional[GateState]] = mapped_column(
+        SQLEnum(GateState, name="gate_state"), nullable=True
+    )
+    previous_state: Mapped[Optional[GateState]] = mapped_column(
+        SQLEnum(GateState, name="gate_state"), nullable=True
+    )
+    badge_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    user_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    result: Mapped[Optional[GateEventResult]] = mapped_column(
+        SQLEnum(GateEventResult), nullable=True
+    )
+    direction: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)  # IN, OUT
+    duration_ms: Mapped[Optional[int]] = mapped_column(nullable=True)
+    extra_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, index=True
+    )
+
+    __table_args__ = (
+        Index("ix_gate_events_gate_timestamp", "gate_id", "timestamp"),
+    )
+
+
+# =============================================================================
+# Zones and Geofences
+# =============================================================================
+
+class ZoneType(str, Enum):
+    """Type of security zone."""
+    AUTHORIZED = "authorized"
+    RESTRICTED = "restricted"
+    EXIT = "exit"
+
+
+class Zone(Base):
+    """Geofence zone definition."""
+    
+    __tablename__ = "zones"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    name: Mapped[str] = mapped_column(String(100))
+    floor: Mapped[str] = mapped_column(String(20), index=True)
+    zone_type: Mapped[ZoneType] = mapped_column(SQLEnum(ZoneType))
+    polygon: Mapped[dict] = mapped_column(JSONB)  # List of {x, y} points
+    color: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
+# =============================================================================
+# Camera Management
+# =============================================================================
+
+class CameraStatus(str, Enum):
+    """Status of a camera."""
+    ONLINE = "online"
+    OFFLINE = "offline"
+    ERROR = "error"
+
+
+class Camera(Base):
+    """Camera entity linked to gates and zones."""
+    
+    __tablename__ = "cameras"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    camera_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(100))
+    floor: Mapped[str] = mapped_column(String(20), index=True)
+    zone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    gate_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+    stream_url: Mapped[str] = mapped_column(String(500))
+    thumbnail_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    status: Mapped[CameraStatus] = mapped_column(
+        SQLEnum(CameraStatus), default=CameraStatus.ONLINE
+    )
+    extra_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+
+
+# =============================================================================
+# Floorplan Management
+# =============================================================================
+
+class Floorplan(Base):
+    """Floorplan image and coordinate mapping."""
+    
+    __tablename__ = "floorplans"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    floor: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(100))
+    image_url: Mapped[str] = mapped_column(String(500))
+    width: Mapped[int] = mapped_column()
+    height: Mapped[int] = mapped_column()
+    scale: Mapped[float] = mapped_column(default=1.0)  # pixels per meter
+    origin_x: Mapped[float] = mapped_column(default=0.0)
+    origin_y: Mapped[float] = mapped_column(default=0.0)
+    extra_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+

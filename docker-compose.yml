@@ -227,6 +227,23 @@ services:
     networks:
       - infant-stack-network
 
+  security-dashboard:
+    image: node:20-alpine
+    container_name: infant-stack-security-dashboard
+    working_dir: /app
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./dashboards:/app
+    command: sh -c "cd security-dashboard && npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api-gateway
+    networks:
+      - infant-stack-network
+
+
 # ==========================================================================
 # Volumes
 # ==========================================================================

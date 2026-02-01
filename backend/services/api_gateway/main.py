@@ -17,7 +17,9 @@ sys.path.insert(0, str(__file__).rsplit("/", 3)[0])
 from shared_libraries.config import get_settings
 from shared_libraries.logging import get_logger, setup_logging
 from shared_libraries.database import init_db, close_db
-from services.api_gateway.routes import pairings, infants, mothers, alerts, health
+from services.api_gateway.routes import (
+    alerts, cameras, gates, health, infants, mothers, pairings, rtls, zones
+)
 
 # Initialize
 setup_logging("api-gateway", "INFO")
@@ -75,6 +77,12 @@ app.include_router(infants.router, prefix=f"{settings.api_prefix}/infants", tags
 app.include_router(mothers.router, prefix=f"{settings.api_prefix}/mothers", tags=["Mothers"])
 app.include_router(pairings.router, prefix=f"{settings.api_prefix}/pairings", tags=["Pairings"])
 app.include_router(alerts.router, prefix=f"{settings.api_prefix}/alerts", tags=["Alerts"])
+
+# Security Dashboard routes
+app.include_router(gates.router, prefix=f"{settings.api_prefix}/gates", tags=["Gates"])
+app.include_router(rtls.router, prefix=f"{settings.api_prefix}/rtls", tags=["RTLS"])
+app.include_router(cameras.router, prefix=f"{settings.api_prefix}/cameras", tags=["Cameras"])
+app.include_router(zones.router, prefix=f"{settings.api_prefix}", tags=["Zones & Floorplans"])
 
 
 if __name__ == "__main__":
