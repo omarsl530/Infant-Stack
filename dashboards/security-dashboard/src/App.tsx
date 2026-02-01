@@ -21,91 +21,26 @@ import {
   CameraStreamModal,
 } from './components';
 
-// Real-time hooks imported but not yet connected to backend
-// import { usePositionTracker, useAlertTracker, useGateEvents } from './hooks/useRealtimeData';
-// import * as api from './api';
+import { usePositionTracker, useAlertTracker, useGateEvents } from './hooks/useRealtimeData';
+import { 
+  fetchGates, 
+  fetchCameras, 
+  fetchZones, 
+  fetchFloorplans,
+  acknowledgeAlert,
+  dismissAlert,
+  escalateAlert
+} from './api';
+
 import type {
   RTLSPosition,
   Gate,
-  Alert,
   Camera,
   Zone,
   Floorplan,
   GateEvent,
   PlaybackState,
 } from './types';
-
-// =============================================================================
-// Mock Data for Development
-// =============================================================================
-
-const MOCK_FLOORPLAN: Floorplan = {
-  id: 'f1',
-  floor: 'F1',
-  name: 'Ground Floor',
-  imageUrl: '/assets/floor1-placeholder.svg',
-  width: 1200,
-  height: 800,
-  scale: 10,
-  originX: 0,
-  originY: 0,
-};
-
-const MOCK_GATES: Gate[] = [
-  { id: '1', gateId: 'GATE-A1', name: 'Main Entrance', floor: 'F1', zone: 'Lobby', state: 'CLOSED', lastStateChange: new Date().toISOString(), cameraId: 'cam-1' },
-  { id: '2', gateId: 'GATE-A2', name: 'Emergency Exit', floor: 'F1', zone: 'East Wing', state: 'OPEN', lastStateChange: new Date().toISOString() },
-  { id: '3', gateId: 'GATE-B1', name: 'Nursery Entry', floor: 'F1', zone: 'Maternity', state: 'CLOSED', lastStateChange: new Date().toISOString(), cameraId: 'cam-2' },
-  { id: '4', gateId: 'GATE-B2', name: 'Staff Only', floor: 'F1', zone: 'Restricted', state: 'FORCED_OPEN', lastStateChange: new Date(Date.now() - 45000).toISOString(), cameraId: 'cam-3' },
-];
-
-const MOCK_CAMERAS: Camera[] = [
-  { id: 'cam-1', cameraId: 'CAM-001', name: 'Main Entrance', gateId: 'GATE-A1', floor: 'F1', zone: 'Lobby', streamUrl: '', thumbnailUrl: '', status: 'online' },
-  { id: 'cam-2', cameraId: 'CAM-002', name: 'Nursery Entry', gateId: 'GATE-B1', floor: 'F1', zone: 'Maternity', streamUrl: '', thumbnailUrl: '', status: 'online' },
-  { id: 'cam-3', cameraId: 'CAM-003', name: 'Staff Corridor', gateId: 'GATE-B2', floor: 'F1', zone: 'Restricted', streamUrl: '', thumbnailUrl: '', status: 'offline' },
-  { id: 'cam-4', cameraId: 'CAM-004', name: 'East Hallway', floor: 'F1', zone: 'East Wing', streamUrl: '', thumbnailUrl: '', status: 'online' },
-];
-
-const MOCK_ZONES: Zone[] = [
-  { id: 'z1', name: 'Maternity Ward', floor: 'F1', type: 'authorized', polygon: [{ x: 100, y: 100 }, { x: 300, y: 100 }, { x: 300, y: 250 }, { x: 100, y: 250 }], color: '#22c55e' },
-  { id: 'z2', name: 'Restricted Area', floor: 'F1', type: 'restricted', polygon: [{ x: 400, y: 100 }, { x: 550, y: 100 }, { x: 550, y: 200 }, { x: 400, y: 200 }], color: '#ef4444' },
-  { id: 'z3', name: 'Exit Zone', floor: 'F1', type: 'exit', polygon: [{ x: 50, y: 300 }, { x: 150, y: 300 }, { x: 150, y: 400 }, { x: 50, y: 400 }], color: '#f59e0b' },
-];
-
-const MOCK_ALERTS: Alert[] = [
-  {
-    id: '1', alertId: 'ALT-001', type: 'DOOR_FORCED_OPEN', severity: 'critical',
-    timestamp: new Date().toISOString(), entityType: 'gate', entityId: 'GATE-B2',
-    message: 'Staff Only door forced open at Restricted Area',
-    acknowledged: false,
-  },
-  {
-    id: '2', alertId: 'ALT-002', type: 'TAG_LOW_BATTERY', severity: 'warning',
-    timestamp: new Date(Date.now() - 300000).toISOString(), entityType: 'tag', entityId: 'INF-007',
-    message: 'Infant tag INF-007 battery at 15%',
-    acknowledged: false,
-  },
-  {
-    id: '3', alertId: 'ALT-003', type: 'GEOFENCE_BREACH', severity: 'critical',
-    timestamp: new Date(Date.now() - 120000).toISOString(), entityType: 'tag', entityId: 'INF-003',
-    message: 'Tag INF-003 entered restricted zone without authorization',
-    acknowledged: true, acknowledgedAt: new Date(Date.now() - 60000).toISOString(),
-  },
-];
-
-const MOCK_POSITIONS: RTLSPosition[] = [
-  { tagId: 'INF-001', assetType: 'infant', x: 150, y: 180, z: 0, floor: 'F1', accuracy: 0.3, batteryPct: 85, gatewayId: 'GW-01', rssi: -55, timestamp: new Date().toISOString(), sequenceId: 1 },
-  { tagId: 'INF-002', assetType: 'infant', x: 220, y: 200, z: 0, floor: 'F1', accuracy: 0.2, batteryPct: 92, gatewayId: 'GW-01', rssi: -48, timestamp: new Date().toISOString(), sequenceId: 2 },
-  { tagId: 'INF-003', assetType: 'infant', x: 450, y: 150, z: 0, floor: 'F1', accuracy: 0.4, batteryPct: 78, gatewayId: 'GW-02', rssi: -62, timestamp: new Date().toISOString(), sequenceId: 3 },
-  { tagId: 'MOM-001', assetType: 'mother', x: 160, y: 170, z: 0, floor: 'F1', accuracy: 0.3, batteryPct: 90, gatewayId: 'GW-01', rssi: -50, timestamp: new Date().toISOString(), sequenceId: 4 },
-  { tagId: 'MOM-002', assetType: 'mother', x: 230, y: 210, z: 0, floor: 'F1', accuracy: 0.2, batteryPct: 88, gatewayId: 'GW-01', rssi: -52, timestamp: new Date().toISOString(), sequenceId: 5 },
-];
-
-const MOCK_EVENTS: GateEvent[] = [
-  { id: 'e1', eventType: 'badgeScan', timestamp: new Date().toISOString(), gateId: 'GATE-A1', gateName: 'Main Entrance', badgeId: 'BADGE-001', userId: 'USR-001', userName: 'J. Smith', result: 'GRANTED', direction: 'IN' },
-  { id: 'e2', eventType: 'forced', timestamp: new Date(Date.now() - 45000).toISOString(), gateId: 'GATE-B2', gateName: 'Staff Only', state: 'FORCED_OPEN', durationMs: 45000 },
-  { id: 'e3', eventType: 'badgeScan', timestamp: new Date(Date.now() - 120000).toISOString(), gateId: 'GATE-B1', gateName: 'Nursery Entry', badgeId: 'BADGE-015', userId: 'USR-015', userName: 'A. Jones', result: 'DENIED', direction: 'IN' },
-  { id: 'e4', eventType: 'gateState', timestamp: new Date(Date.now() - 180000).toISOString(), gateId: 'GATE-A2', gateName: 'Emergency Exit', state: 'OPEN', previousState: 'CLOSED' },
-];
 
 // =============================================================================
 // Stat Card Component
@@ -153,14 +88,20 @@ export default function App() {
   const [showHeatmap, setShowHeatmap] = useState(false);
   
   // Data state
-  const [floorplan] = useState<Floorplan>(MOCK_FLOORPLAN);
-  const [gates] = useState<Gate[]>(MOCK_GATES);
-  const [cameras] = useState<Camera[]>(MOCK_CAMERAS);
-  const [zones] = useState<Zone[]>(MOCK_ZONES);
-  const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
-  const [positions, setPositions] = useState<RTLSPosition[]>(MOCK_POSITIONS);
-  const [events] = useState<GateEvent[]>(MOCK_EVENTS);
+  const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
+  const [activeFloorplanId, setActiveFloorplanId] = useState<string | null>(null);
+  const [gates, setGates] = useState<Gate[]>([]);
+  const [cameras, setCameras] = useState<Camera[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   
+  // Real-time data from hooks
+  const activeFloorplan = floorplans.find(f => f.id === activeFloorplanId) || floorplans[0] || null;
+  const { positions, isConnected: isRtlsConnected } = usePositionTracker(activeFloorplan?.floor || 'F1');
+  const { alerts, setAlerts, isConnected: isAlertsConnected } = useAlertTracker();
+  const { events, isConnected: isEventsConnected } = useGateEvents();
+  
+  const isSystemOnline = isRtlsConnected && isAlertsConnected && isEventsConnected;
+
   // Modal states
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
   const [selectedTag, setSelectedTag] = useState<RTLSPosition | null>(null);
@@ -173,56 +114,77 @@ export default function App() {
     playbackSpeed: 1,
   });
 
-  // Real-time hooks (commented out for now, using mock data)
-  // const { positions, isConnected } = usePositionTracker('F1');
-  // const { alerts: realtimeAlerts } = useAlertTracker();
-  // const { events: realtimeEvents } = useGateEvents();
-
   // Clock update
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Simulate position updates
+  // Fetch static data on mount
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPositions((prev) =>
-        prev.map((pos) => ({
-          ...pos,
-          x: pos.x + (Math.random() - 0.5) * 5,
-          y: pos.y + (Math.random() - 0.5) * 5,
-          timestamp: new Date().toISOString(),
-        }))
-      );
-    }, 2000);
-    return () => clearInterval(interval);
+    const fetchData = async () => {
+      try {
+        const [gatesData, camerasData, zonesData, floorplansData] = await Promise.all([
+          fetchGates(),
+          fetchCameras(),
+          fetchZones(),
+          fetchFloorplans()
+        ]);
+        
+        setGates(gatesData);
+        setCameras(camerasData);
+        setZones(zonesData);
+        setFloorplans(floorplansData);
+        if (floorplansData.length > 0) {
+          setActiveFloorplanId(floorplansData[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
+      }
+    };
+    
+    fetchData();
   }, []);
 
   // Handlers
-  const handleAcknowledgeAlert = useCallback((alertId: string) => {
-    setAlerts((prev) =>
-      prev.map((a) =>
-        a.alertId === alertId
-          ? { ...a, acknowledged: true, acknowledgedAt: new Date().toISOString() }
-          : a
-      )
-    );
-  }, []);
+  const handleAcknowledgeAlert = useCallback(async (alertId: string) => {
+    try {
+      await acknowledgeAlert(alertId);
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.alertId === alertId
+            ? { ...a, acknowledged: true, acknowledgedAt: new Date().toISOString() }
+            : a
+        )
+      );
+    } catch (err) {
+      console.error("Failed to acknowledge alert:", err);
+    }
+  }, [setAlerts]);
 
-  const handleDismissAlert = useCallback((alertId: string) => {
-    setAlerts((prev) => prev.filter((a) => a.alertId !== alertId));
-  }, []);
+  const handleDismissAlert = useCallback(async (alertId: string) => {
+    try {
+      await dismissAlert(alertId);
+      setAlerts((prev) => prev.filter((a) => a.alertId !== alertId));
+    } catch (err) {
+      console.error("Failed to dismiss alert:", err);
+    }
+  }, [setAlerts]);
 
-  const handleEscalateAlert = useCallback((alertId: string) => {
-    setAlerts((prev) =>
-      prev.map((a) =>
-        a.alertId === alertId
-          ? { ...a, escalatedAt: new Date().toISOString() }
-          : a
-      )
-    );
-  }, []);
+  const handleEscalateAlert = useCallback(async (alertId: string) => {
+    try {
+      await escalateAlert(alertId);
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.alertId === alertId
+            ? { ...a, escalatedAt: new Date().toISOString() }
+            : a
+        )
+      );
+    } catch (err) {
+      console.error("Failed to escalate alert:", err);
+    }
+  }, [setAlerts]);
 
   // Stats
   const activeAlerts = alerts.filter((a) => !a.acknowledged).length;
@@ -278,9 +240,11 @@ export default function App() {
           {/* Connection Status */}
           <div className="p-4 border-t border-slate-700/50">
             <div className={`flex items-center gap-2 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-              <SignalIcon className="w-4 h-4 text-emerald-400" />
+              <SignalIcon className={`w-4 h-4 ${isSystemOnline ? 'text-emerald-400' : 'text-red-400'}`} />
               {!isSidebarCollapsed && (
-                <span className="text-xs text-emerald-400">Connected • Live</span>
+                <span className={`text-xs ${isSystemOnline ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {isSystemOnline ? 'Connected • Live' : 'Reconnecting...'}
+                </span>
               )}
             </div>
           </div>
@@ -320,9 +284,11 @@ export default function App() {
 
             <div className="flex items-center gap-4">
               {/* Live indicator */}
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 rounded-full">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-red-400">LIVE</span>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${isSystemOnline ? 'bg-red-600/20' : 'bg-slate-700/50'}`}>
+                <span className={`w-2 h-2 rounded-full ${isSystemOnline ? 'bg-red-500 animate-pulse' : 'bg-slate-400'}`} />
+                <span className={`text-xs font-medium ${isSystemOnline ? 'text-red-400' : 'text-slate-400'}`}>
+                  {isSystemOnline ? 'LIVE' : 'OFFLINE'}
+                </span>
               </div>
 
               {/* Time */}
@@ -376,7 +342,7 @@ export default function App() {
               {activeView === 'map' && (
                 <>
                   {/* Map Controls */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -386,12 +352,25 @@ export default function App() {
                       />
                       <span className="text-sm">Show Heatmap</span>
                     </label>
+
+                    {/* Floor Selector */}
+                    {floorplans.length > 1 && (
+                      <select 
+                        value={activeFloorplanId || ''} 
+                        onChange={(e) => setActiveFloorplanId(e.target.value)}
+                        className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        {floorplans.map(fp => (
+                          <option key={fp.id} value={fp.id}>{fp.name}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   {/* Floorplan Map */}
                   <div className="glass-card overflow-hidden" style={{ height: '500px' }}>
                     <FloorplanMap
-                      floorplan={floorplan}
+                      floorplan={activeFloorplan}
                       positions={positions}
                       gates={gates}
                       zones={zones}

@@ -237,19 +237,90 @@ async def verify_token(token: str) -> TokenPayload:
         raise credentials_exception
 
 
+
+# =============================================================================
+# Role & Permission Definitions
+# =============================================================================
+
+class Permissions:
+    """System permissions constants."""
+    # User Management
+    USER_READ = "user:read"
+    USER_WRITE = "user:write"
+    USER_DELETE = "user:delete"
+    
+    # Infant/Mother Management
+    PATIENT_READ = "patient:read"
+    PATIENT_WRITE = "patient:write"
+    PATIENT_ADMIT = "patient:admit"
+    PATIENT_DISCHARGE = "patient:discharge"
+    
+    # Security/Gates
+    GATE_READ = "gate:read"
+    GATE_CONTROL = "gate:control"
+    ZONE_READ = "zone:read"
+    ZONE_WRITE = "zone:write"
+    
+    # RTLS
+    RTLS_READ = "rtls:read"
+    RTLS_HISTORY = "rtls:history"
+    
+    # Audit/System
+    AUDIT_READ = "audit:read"
+    SYSTEM_CONFIG = "system:config"
+
+
+# Role to Permission Mapping
+ROLE_PERMISSIONS = {
+    "admin": [
+        # Admin has almost everything
+        Permissions.USER_READ, Permissions.USER_WRITE, Permissions.USER_DELETE,
+        Permissions.PATIENT_READ, Permissions.PATIENT_WRITE, Permissions.PATIENT_ADMIT, Permissions.PATIENT_DISCHARGE,
+        Permissions.GATE_READ, Permissions.GATE_CONTROL,
+        Permissions.ZONE_READ, Permissions.ZONE_WRITE,
+        Permissions.RTLS_READ, Permissions.RTLS_HISTORY,
+        Permissions.AUDIT_READ, Permissions.SYSTEM_CONFIG
+    ],
+    "nurse": [
+        # Nurse focuses on patients and monitoring
+        Permissions.PATIENT_READ, Permissions.PATIENT_WRITE, Permissions.PATIENT_ADMIT, Permissions.PATIENT_DISCHARGE,
+        Permissions.GATE_READ, # Can see if gates are open/closed
+        Permissions.RTLS_READ, Permissions.RTLS_HISTORY, # Can track patients
+        Permissions.USER_READ, # Can search for other staff
+    ],
+    "security": [
+        # Security focuses on structure and tracking
+        Permissions.GATE_READ, Permissions.GATE_CONTROL,
+        Permissions.ZONE_READ,
+        Permissions.RTLS_READ, Permissions.RTLS_HISTORY,
+        Permissions.PATIENT_READ, # Need to identify people
+        Permissions.AUDIT_READ, # review logs
+    ],
+    "viewer": [
+        # Read-only basics
+        Permissions.PATIENT_READ,
+        Permissions.RTLS_READ,
+        Permissions.GATE_READ,
+    ]
+}
+
+def get_permissions_for_roles(roles: List[str]) -> List[str]:
+    """Get unique list of permissions for a set of roles."""
+    perms = set()
+    for role in roles:
+        perms.update(ROLE_PERMISSIONS.get(role, []))
+    return list(perms)
+
+
+# =============================================================================
+# Dependencies
+# =============================================================================
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ) -> CurrentUser:
     """
     FastAPI dependency to get the current authenticated user.
-    
-    Extracts and verifies the JWT token from the Authorization header,
-    then returns a CurrentUser object with user details and roles.
-    
-    Usage:
-        @router.get("/protected")
-        async def protected_route(user: CurrentUser = Depends(get_current_user)):
-            return {"user": user.username}
     """
     token = credentials.credentials
     payload = await verify_token(token)
@@ -269,21 +340,6 @@ async def get_current_user(
 def require_roles(required_roles: List[str], require_all: bool = False):
     """
     Create a dependency that requires specific roles.
-    
-    Args:
-        required_roles: List of role names required
-        require_all: If True, user must have ALL roles. If False, ANY role suffices.
-        
-    Returns:
-        FastAPI dependency function
-        
-    Usage:
-        @router.delete("/item/{id}")
-        async def delete_item(
-            id: str,
-            user: CurrentUser = Depends(require_roles(["admin"]))
-        ):
-            ...
     """
     async def role_checker(
         user: CurrentUser = Depends(get_current_user),
@@ -295,14 +351,14 @@ def require_roles(required_roles: List[str], require_all: bool = False):
         
         if not has_required:
             logger.warning(
-                "access_denied",
+                "access_denied_role",
                 user_id=user.id,
                 required_roles=required_roles,
                 user_roles=user.roles,
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions",
+                detail="Insufficient permissions (Role)",
             )
         
         return user
@@ -310,9 +366,37 @@ def require_roles(required_roles: List[str], require_all: bool = False):
     return role_checker
 
 
+def require_permission(permission: str):
+    """
+    Create a dependency that requires a specific granular permission.
+    
+    Resolves user roles to permissions and checks for the required one.
+    """
+    async def permission_checker(
+        user: CurrentUser = Depends(get_current_user),
+    ) -> CurrentUser:
+        user_permissions = get_permissions_for_roles(user.roles)
+        
+        if permission not in user_permissions:
+            logger.warning(
+                "access_denied_permission",
+                user_id=user.id,
+                required_permission=permission,
+                user_roles=user.roles,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions: {permission}",
+            )
+        return user
+        
+    return permission_checker
+
+
 # Pre-configured role dependencies for common use cases
 require_admin = require_roles(["admin"])
 require_user_or_admin = require_roles(["user", "admin"])
+require_audit_read = require_permission(Permissions.AUDIT_READ)
 
 
 # Optional authentication - allows unauthenticated access but provides user if authenticated
@@ -334,3 +418,4 @@ async def get_current_user_optional(
         return await get_current_user(credentials)
     except HTTPException:
         return None
+

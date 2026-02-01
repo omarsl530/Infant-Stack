@@ -18,7 +18,7 @@ from shared_libraries.config import get_settings
 from shared_libraries.logging import get_logger, setup_logging
 from shared_libraries.database import init_db, close_db
 from services.api_gateway.routes import (
-    alerts, cameras, gates, health, infants, mothers, pairings, rtls, zones
+    alerts, audit, cameras, gates, health, infants, mothers, pairings, rtls, users, websocket, zones
 )
 
 # Initialize
@@ -59,6 +59,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Audit Logging Middleware
+from services.api_gateway.middleware.audit import AuditMiddleware
+app.add_middleware(AuditMiddleware)
+
 
 # Exception handlers
 @app.exception_handler(Exception)
@@ -77,12 +81,19 @@ app.include_router(infants.router, prefix=f"{settings.api_prefix}/infants", tags
 app.include_router(mothers.router, prefix=f"{settings.api_prefix}/mothers", tags=["Mothers"])
 app.include_router(pairings.router, prefix=f"{settings.api_prefix}/pairings", tags=["Pairings"])
 app.include_router(alerts.router, prefix=f"{settings.api_prefix}/alerts", tags=["Alerts"])
+app.include_router(audit.router, prefix=f"{settings.api_prefix}/audit-logs", tags=["Audit Logs"])
 
 # Security Dashboard routes
 app.include_router(gates.router, prefix=f"{settings.api_prefix}/gates", tags=["Gates"])
 app.include_router(rtls.router, prefix=f"{settings.api_prefix}/rtls", tags=["RTLS"])
 app.include_router(cameras.router, prefix=f"{settings.api_prefix}/cameras", tags=["Cameras"])
 app.include_router(zones.router, prefix=f"{settings.api_prefix}", tags=["Zones & Floorplans"])
+
+# Admin Dashboard routes
+app.include_router(users.router, prefix=f"{settings.api_prefix}/users", tags=["Users"])
+
+# WebSocket streaming
+app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 
 
 if __name__ == "__main__":

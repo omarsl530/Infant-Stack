@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  color: #f1f5f9;
+}
+
+/* Glassmorphism effects */
+.glass {
+  @apply bg-white/5 backdrop-blur-lg border border-white/10;
+}
+
+.glass-card {
+  @apply glass rounded-xl shadow-xl;
+}
+
+/* Table styles */
+.admin-table {
+  @apply w-full text-sm text-left;
+}
+
+.admin-table th {
+  @apply px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 bg-slate-800/50;
+}
+
+.admin-table td {
+  @apply px-4 py-3 border-t border-slate-700/50;
+}
+
+.admin-table tbody tr:hover {
+  @apply bg-slate-700/30;
+}
+
+/* Badge styles */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-admin {
+  @apply bg-purple-500/20 text-purple-300 border border-purple-500/30;
+}
+
+.badge-nurse {
+  @apply bg-blue-500/20 text-blue-300 border border-blue-500/30;
+}
+
+.badge-security {
+  @apply bg-orange-500/20 text-orange-300 border border-orange-500/30;
+}
+
+.badge-viewer {
+  @apply bg-slate-500/20 text-slate-300 border border-slate-500/30;
+}
+
+.badge-active {
+  @apply bg-emerald-500/20 text-emerald-300 border border-emerald-500/30;
+}
+
+.badge-inactive {
+  @apply bg-red-500/20 text-red-300 border border-red-500/30;
+}
+
+/* Form styles */
+.form-input {
+  @apply w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400
+         focus:outline-none focus:ring-2 focus:ring-admin-500 focus:border-transparent
+         transition-all duration-200;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-slate-300 mb-1.5;
+}
+
+.form-select {
+  @apply form-input appearance-none cursor-pointer;
+}
+
+/* Button styles */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+         transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900;
+}
+
+.btn-primary {
+  @apply btn bg-admin-600 text-white hover:bg-admin-700 focus:ring-admin-500;
+}
+
+.btn-secondary {
+  @apply btn bg-slate-700 text-white hover:bg-slate-600 focus:ring-slate-500;
+}
+
+.btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-ghost {
+  @apply btn bg-transparent text-slate-300 hover:bg-slate-700 hover:text-white;
+}
+
+/* Modal styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center;
+}
+
+.modal-content {
+  @apply glass-card p-6 w-full max-w-md mx-4 animate-slide-in;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-800/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-500;
+}

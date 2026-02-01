@@ -187,15 +187,30 @@ export interface PlaybackState {
 // =============================================================================
 
 export interface PaginatedResponse<T> {
-  data: T[];
+  items: T[];
   total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
+  page?: number;
+  pageSize?: number;
+  hasMore?: boolean;
 }
 
 export interface APIError {
   code: string;
   message: string;
   details?: Record<string, unknown>;
+}
+
+// =============================================================================
+// WebSocket Types
+// =============================================================================
+
+export type WSEventType = 'initial' | 'position' | 'event' | 'alert' | 'heartbeat';
+
+export interface WSMessage {
+  type: WSEventType;
+  data?: RTLSPosition | GateEvent | Alert;
+  positions?: RTLSPosition[];
+  gates?: Gate[];
+  alerts?: Alert[];
+  timestamp: string;
 }

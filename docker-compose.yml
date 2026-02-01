@@ -243,6 +243,22 @@ services:
     networks:
       - infant-stack-network
 
+  admin-dashboard:
+    image: node:20-alpine
+    container_name: infant-stack-admin-dashboard
+    working_dir: /app
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./dashboards:/app
+    command: sh -c "cd admin-dashboard && npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api-gateway
+    networks:
+      - infant-stack-network
+
 
 # ==========================================================================
 # Volumes
