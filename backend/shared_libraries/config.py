@@ -90,8 +90,9 @@ class Settings(BaseSettings):
         When running inside Docker, use the container name instead of localhost.
         """
         import os
+
         # Check if running inside Docker (common indicators)
-        if os.path.exists('/.dockerenv') or os.environ.get('DOCKER_CONTAINER'):
+        if os.path.exists("/.dockerenv") or os.environ.get("DOCKER_CONTAINER"):
             return f"http://keycloak:8080"
         return self.keycloak_url
 

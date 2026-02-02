@@ -2,17 +2,27 @@
 Dashboard statistics API routes.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.orm_models.models import (
+    Alert,
+    AlertSeverity,
+    Infant,
+    Mother,
+    Pairing,
+    PairingStatus,
+    TagStatus,
+    User,
+)
+from shared_libraries.auth import CurrentUser, get_current_user
 from shared_libraries.database import get_db
-from shared_libraries.auth import get_current_user, CurrentUser
-from database.orm_models.models import User, Infant, Mother, Alert, AlertSeverity, TagStatus, Pairing, PairingStatus 
 
 router = APIRouter()
+
 
 @router.get("/dashboard", response_model=Dict[str, Any])
 async def get_dashboard_stats(
@@ -22,48 +32,60 @@ async def get_dashboard_stats(
     """
     Get aggregated dashboard statistics.
     """
-    
+
     # User stats
     total_users_result = await db.execute(select(func.count(User.id)))
     total_users = total_users_result.scalar() or 0
-    
-    active_users_result = await db.execute(select(func.count(User.id)).where(User.is_active == True)) # Approximate for sessions? Or use last_login window?
+
+    active_users_result = await db.execute(
+        select(func.count(User.id)).where(User.is_active == True)
+    )  # Approximate for sessions? Or use last_login window?
     # Users with recent login? Let's generic to active users for now as sessions are Redis based and harder to query from here easily without Redis client
     # But Header says "Active Sessions". Let's stick to active users count for simplicity or distinct users in audit logs today.
-    active_sessions = active_users_result.scalar() or 0 # Placeholder logic for "Active Sessions"
+    active_sessions = (
+        active_users_result.scalar() or 0
+    )  # Placeholder logic for "Active Sessions"
 
     # Tag stats
-    active_infants_result = await db.execute(select(func.count(Infant.id)).where(Infant.tag_status == TagStatus.ACTIVE))
+    active_infants_result = await db.execute(
+        select(func.count(Infant.id)).where(Infant.tag_status == TagStatus.ACTIVE)
+    )
     active_infants = active_infants_result.scalar() or 0
-    
-    active_mothers_result = await db.execute(select(func.count(Mother.id)).where(Mother.tag_status == TagStatus.ACTIVE))
+
+    active_mothers_result = await db.execute(
+        select(func.count(Mother.id)).where(Mother.tag_status == TagStatus.ACTIVE)
+    )
     active_mothers = active_mothers_result.scalar() or 0
-    
+
     total_active_tags = active_infants + active_mothers
 
     # Alert stats
     from datetime import datetime, timedelta
+
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    alerts_today_result = await db.execute(select(func.count(Alert.id)).where(Alert.created_at >= today_start))
+
+    alerts_today_result = await db.execute(
+        select(func.count(Alert.id)).where(Alert.created_at >= today_start)
+    )
     alerts_today = alerts_today_result.scalar() or 0
-    
-    unack_alerts_result = await db.execute(select(func.count(Alert.id)).where(Alert.created_at >= today_start, Alert.acknowledged == False))
+
+    unack_alerts_result = await db.execute(
+        select(func.count(Alert.id)).where(
+            Alert.created_at >= today_start, Alert.acknowledged == False
+        )
+    )
     unack_alerts = unack_alerts_result.scalar() or 0
 
     return {
         "users": {
             "total": total_users,
-            "active_sessions": active_sessions, # Or derived from Redis if available
-            "new_this_month": 0 # TODO: Implement if needed
+            "active_sessions": active_sessions,  # Or derived from Redis if available
+            "new_this_month": 0,  # TODO: Implement if needed
         },
         "tags": {
             "total_active": total_active_tags,
             "infants": active_infants,
-            "mothers": active_mothers
+            "mothers": active_mothers,
         },
-        "alerts": {
-            "today": alerts_today,
-            "unacknowledged": unack_alerts
-        }
+        "alerts": {"today": alerts_today, "unacknowledged": unack_alerts},
     }

@@ -5,6 +5,7 @@ Tests for API Gateway health endpoints.
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_health_check(async_client: AsyncClient) -> None:
     """Test the root health check endpoint."""
@@ -12,6 +13,7 @@ async def test_health_check(async_client: AsyncClient) -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
+
 
 @pytest.mark.asyncio
 async def test_api_health_check(async_client: AsyncClient) -> None:
@@ -21,6 +23,7 @@ async def test_api_health_check(async_client: AsyncClient) -> None:
     data = response.json()
     assert data["status"] == "healthy"
     assert data["service"] == "api-gateway"
+
 
 @pytest.mark.asyncio
 async def test_readiness_check(async_client: AsyncClient) -> None:

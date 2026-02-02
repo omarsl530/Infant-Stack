@@ -10,12 +10,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared_libraries.database import get_db
-from shared_libraries.auth import CurrentUser, require_audit_read, Permissions
 from database.orm_models.models import AuditLog
+from shared_libraries.auth import CurrentUser, Permissions, require_audit_read
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
@@ -24,8 +24,10 @@ router = APIRouter()
 # Pydantic Models
 # =============================================================================
 
+
 class AuditLogResponse(BaseModel):
     """Audit log entry response."""
+
     id: UUID
     user_id: Optional[UUID]
     action: str
@@ -34,13 +36,14 @@ class AuditLogResponse(BaseModel):
     details: Optional[dict]
     ip_address: Optional[str]
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class AuditLogList(BaseModel):
     """Paginated list of audit logs."""
+
     items: List[AuditLogResponse]
     total: int
     page: int
@@ -49,6 +52,7 @@ class AuditLogList(BaseModel):
 
 class AuditFilters(BaseModel):
     """Available filters for audit logs."""
+
     actions: List[str]
     resource_types: List[str]
 
@@ -56,6 +60,7 @@ class AuditFilters(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("", response_model=AuditLogList)
 async def list_audit_logs(
@@ -71,44 +76,44 @@ async def list_audit_logs(
 ):
     """
     List audit logs with filtering and pagination.
-    
+
     Requires 'audit:read' permission.
     """
     query = select(AuditLog).order_by(AuditLog.created_at.desc())
     count_query = select(func.count()).select_from(AuditLog)
-    
+
     # Apply filters
     if user_id:
         query = query.where(AuditLog.user_id == user_id)
         count_query = count_query.where(AuditLog.user_id == user_id)
-    
+
     if action:
         query = query.where(AuditLog.action == action)
         count_query = count_query.where(AuditLog.action == action)
-        
+
     if resource_type:
         query = query.where(AuditLog.resource_type == resource_type)
         count_query = count_query.where(AuditLog.resource_type == resource_type)
-        
+
     if from_time:
         query = query.where(AuditLog.created_at >= from_time)
         count_query = count_query.where(AuditLog.created_at >= from_time)
-        
+
     if to_time:
         query = query.where(AuditLog.created_at <= to_time)
         count_query = count_query.where(AuditLog.created_at <= to_time)
-    
+
     # Get total
     total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
-    
+
     # Pagination
     offset = (page - 1) * limit
     query = query.offset(offset).limit(limit)
-    
+
     result = await db.execute(query)
     logs = result.scalars().all()
-    
+
     return AuditLogList(
         items=[AuditLogResponse.model_validate(log) for log in logs],
         total=total,
@@ -128,11 +133,11 @@ async def get_audit_filters(
     # Get unique actions
     action_result = await db.execute(select(AuditLog.action).distinct())
     actions = [r for r in action_result.scalars().all()]
-    
+
     # Get unique resource types
     resource_result = await db.execute(select(AuditLog.resource_type).distinct())
     resource_types = [r for r in resource_result.scalars().all()]
-    
+
     return AuditFilters(
         actions=sorted(actions),
         resource_types=sorted(resource_types),

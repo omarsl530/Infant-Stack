@@ -8,16 +8,21 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared_libraries.database import get_db
-from shared_libraries.auth import CurrentUser, require_user_or_admin, require_admin
 from database.orm_models.models import RTLSPosition
+from services.api_gateway.routes.websocket import (
+    broadcast_alert,
+    broadcast_position_update,
+    manager,
+    serialize_alert,
+)
 from services.geofence_service import check_geofence
-from services.api_gateway.routes.websocket import manager, broadcast_position_update, broadcast_alert, serialize_alert
+from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
@@ -26,8 +31,10 @@ router = APIRouter()
 # Request/Response Models
 # =============================================================================
 
+
 class RTLSPositionCreate(BaseModel):
     """Request model for creating a position update."""
+
     tag_id: str
     asset_type: str
     x: float
@@ -42,6 +49,7 @@ class RTLSPositionCreate(BaseModel):
 
 class RTLSPositionResponse(BaseModel):
     """Response model for RTLS position data."""
+
     id: UUID
     tag_id: str
     asset_type: str
@@ -61,12 +69,14 @@ class RTLSPositionResponse(BaseModel):
 
 class RTLSPositionList(BaseModel):
     """List of RTLS positions."""
+
     positions: list[RTLSPositionResponse]
     total: int
 
 
 class RTLSPositionHistoryParams(BaseModel):
     """Parameters for position history query."""
+
     from_time: datetime
     to_time: datetime
     tag_id: Optional[str] = None
@@ -75,6 +85,7 @@ class RTLSPositionHistoryParams(BaseModel):
 
 class RTLSLatestPositions(BaseModel):
     """Latest position for each active tag."""
+
     positions: list[RTLSPositionResponse]
     total: int
     timestamp: datetime
@@ -85,16 +96,20 @@ class RTLSLatestPositions(BaseModel):
 # =============================================================================
 
 
-@router.post("/positions", response_model=RTLSPositionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/positions",
+    response_model=RTLSPositionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_position(
     position_data: RTLSPositionCreate,
     db: AsyncSession = Depends(get_db),
     # In production, this should be protected (e.g., API Key or specialized generic user)
-    # current_user: CurrentUser = Depends(require_admin), 
+    # current_user: CurrentUser = Depends(require_admin),
 ):
     """
     Ingest a new RTLS position.
-    
+
     Triggers:
     - Database insertion
     - Geofence checks
@@ -114,36 +129,38 @@ async def create_position(
         rssi=position_data.rssi,
     )
     db.add(position)
-    
+
     # 2. Check (and create) Geofence Alerts
     # We await flush to get ID if needed, but for geofence checking we just need data
     alerts = await check_geofence(
-        db, 
-        position_data.tag_id, 
-        position_data.asset_type, 
-        position_data.x, 
-        position_data.y, 
-        position_data.floor
+        db,
+        position_data.tag_id,
+        position_data.asset_type,
+        position_data.x,
+        position_data.y,
+        position_data.floor,
     )
-    
+
     await db.commit()
     await db.refresh(position)
-    
+
     # 3. Broadcast Position
-    await broadcast_position_update({
-        "id": str(position.id),
-        "tagId": position.tag_id,
-        "assetType": position.asset_type,
-        "x": position.x,
-        "y": position.y,
-        "floor": position.floor,
-        "timestamp": position.timestamp.isoformat()
-    })
-    
+    await broadcast_position_update(
+        {
+            "id": str(position.id),
+            "tagId": position.tag_id,
+            "assetType": position.asset_type,
+            "x": position.x,
+            "y": position.y,
+            "floor": position.floor,
+            "timestamp": position.timestamp.isoformat(),
+        }
+    )
+
     # 4. Broadcast Alerts
     for alert in alerts:
         await broadcast_alert(serialize_alert(alert))
-        
+
     return RTLSPositionResponse(
         id=position.id,
         tag_id=position.tag_id,
@@ -169,7 +186,7 @@ async def get_latest_positions(
 ) -> RTLSLatestPositions:
     """
     Get the latest position for each active tag.
-    
+
     This uses a subquery to find the most recent position for each tag.
     """
     # Subquery to get max timestamp per tag
@@ -178,27 +195,24 @@ async def get_latest_positions(
         .group_by(RTLSPosition.tag_id)
         .subquery()
     )
-    
+
     # Main query joining with the latest positions
-    query = (
-        select(RTLSPosition)
-        .join(
-            latest_subquery,
-            and_(
-                RTLSPosition.tag_id == latest_subquery.c.tag_id,
-                RTLSPosition.timestamp == latest_subquery.c.max_ts,
-            ),
-        )
+    query = select(RTLSPosition).join(
+        latest_subquery,
+        and_(
+            RTLSPosition.tag_id == latest_subquery.c.tag_id,
+            RTLSPosition.timestamp == latest_subquery.c.max_ts,
+        ),
     )
-    
+
     if floor:
         query = query.where(RTLSPosition.floor == floor)
     if asset_type:
         query = query.where(RTLSPosition.asset_type == asset_type)
-    
+
     result = await db.execute(query)
     positions = result.scalars().all()
-    
+
     items = [
         RTLSPositionResponse(
             id=p.id,
@@ -216,7 +230,7 @@ async def get_latest_positions(
         )
         for p in positions
     ]
-    
+
     return RTLSLatestPositions(
         positions=items,
         total=len(items),
@@ -224,9 +238,11 @@ async def get_latest_positions(
     )
 
 
-from fastapi.responses import StreamingResponse
 import csv
 import io
+
+from fastapi.responses import StreamingResponse
+
 
 @router.get("/positions/history", response_model=RTLSPositionList)
 async def get_position_history(
@@ -241,7 +257,7 @@ async def get_position_history(
 ) -> RTLSPositionList:
     """
     Get historical RTLS positions for a given time range.
-    
+
     Optionally filter by tag_id and/or floor.
     """
     # Base conditions
@@ -253,14 +269,14 @@ async def get_position_history(
         conditions.append(RTLSPosition.tag_id == tag_id)
     if floor:
         conditions.append(RTLSPosition.floor == floor)
-        
+
     combined_filter = and_(*conditions)
 
     # Get total count (direct count query, more efficient)
     count_query = select(func.count()).select_from(RTLSPosition).where(combined_filter)
     count_result = await db.execute(count_query)
     total = count_result.scalar() or 0
-    
+
     # Get Data
     query = (
         select(RTLSPosition)
@@ -271,7 +287,7 @@ async def get_position_history(
     )
     result = await db.execute(query)
     positions = result.scalars().all()
-    
+
     items = [
         RTLSPositionResponse(
             id=p.id,
@@ -289,7 +305,7 @@ async def get_position_history(
         )
         for p in positions
     ]
-    
+
     return RTLSPositionList(positions=items, total=total)
 
 
@@ -318,28 +334,28 @@ async def get_position_export(
     async def iter_csv():
         # Header
         yield "timestamp,tag_id,asset_type,floor,x,y,z,accuracy,battery_pct\n"
-        
+
         # Query in chunks to avoid memory overload
         stmt = (
             select(RTLSPosition)
             .where(and_(*conditions))
             .order_by(RTLSPosition.timestamp.asc())
-            .execution_options(yield_per=1000) # Stream from DB
+            .execution_options(yield_per=1000)  # Stream from DB
         )
-        
+
         result = await db.stream(stmt)
-        
+
         async for row in result:
             p = row.RTLSPosition
             # Format CSV line
             yield f"{p.timestamp.isoformat()},{p.tag_id},{p.asset_type},{p.floor},{p.x},{p.y},{p.z},{p.accuracy},{p.battery_pct}\n"
 
     filename = f"rtls_export_{from_time.strftime('%Y%m%d%H%M')}_{to_time.strftime('%Y%m%d%H%M')}.csv"
-    
+
     return StreamingResponse(
         iter_csv(),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
 
@@ -356,16 +372,16 @@ async def get_tag_positions(
     Get position history for a specific tag.
     """
     query = select(RTLSPosition).where(RTLSPosition.tag_id == tag_id)
-    
+
     if from_time:
         query = query.where(RTLSPosition.timestamp >= from_time)
     if to_time:
         query = query.where(RTLSPosition.timestamp <= to_time)
-    
+
     query = query.order_by(RTLSPosition.timestamp.desc()).limit(limit)
     result = await db.execute(query)
     positions = result.scalars().all()
-    
+
     items = [
         RTLSPositionResponse(
             id=p.id,
@@ -383,7 +399,7 @@ async def get_tag_positions(
         )
         for p in positions
     ]
-    
+
     return RTLSPositionList(positions=items, total=len(items))
 
 
@@ -403,13 +419,13 @@ async def get_tag_latest_position(
         .limit(1)
     )
     position = result.scalar_one_or_none()
-    
+
     if not position:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No positions found for tag {tag_id}",
         )
-    
+
     return RTLSPositionResponse(
         id=position.id,
         tag_id=position.tag_id,

@@ -11,9 +11,9 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared_libraries.database import get_db
+from database.orm_models.models import Infant, Mother, Pairing, PairingStatus
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
-from database.orm_models.models import Pairing, Infant, Mother, PairingStatus
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
@@ -22,14 +22,17 @@ router = APIRouter()
 # Pydantic Models
 # =============================================================================
 
+
 class PairingCreate(BaseModel):
     """Request model for creating a pairing."""
+
     infant_id: UUID
     mother_id: UUID
 
 
 class PairingResponse(BaseModel):
     """Response model for pairing data."""
+
     id: UUID
     infant_id: UUID
     mother_id: UUID
@@ -47,6 +50,7 @@ class PairingResponse(BaseModel):
 
 class PairingList(BaseModel):
     """Paginated list of pairings."""
+
     items: list[PairingResponse]
     total: int
     page: int
@@ -56,6 +60,7 @@ class PairingList(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("/", response_model=PairingList)
 async def list_pairings(
@@ -109,11 +114,11 @@ async def create_pairing(
         status=PairingStatus.ACTIVE,
         paired_at=datetime.utcnow(),
     )
-    
+
     db.add(new_pairing)
     await db.commit()
     await db.refresh(new_pairing)
-    
+
     # 5. Return Response (manually construct or use eager load logic if robust)
     # Since we have the objects, we can construct it manually to avoid lazy loads
     return PairingResponse(
@@ -139,19 +144,23 @@ async def get_pairing(
     """Get a specific pairing by ID."""
     result = await db.execute(select(Pairing).where(Pairing.id == pairing_id))
     pairing = result.unique().scalar_one_or_none()
-    
+
     if not pairing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Pairing {pairing_id} not found",
         )
-    
+
     # Fetch related entities
-    infant_result = await db.execute(select(Infant).where(Infant.id == pairing.infant_id))
+    infant_result = await db.execute(
+        select(Infant).where(Infant.id == pairing.infant_id)
+    )
     infant = infant_result.unique().scalar_one()
-    mother_result = await db.execute(select(Mother).where(Mother.id == pairing.mother_id))
+    mother_result = await db.execute(
+        select(Mother).where(Mother.id == pairing.mother_id)
+    )
     mother = mother_result.unique().scalar_one()
-    
+
     return PairingResponse(
         id=pairing.id,
         infant_id=pairing.infant_id,
@@ -175,13 +184,13 @@ async def delete_pairing(
     """Delete a pairing (unpair infant from mother)."""
     result = await db.execute(select(Pairing).where(Pairing.id == pairing_id))
     pairing = result.unique().scalar_one_or_none()
-    
+
     if not pairing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Pairing {pairing_id} not found",
         )
-    
+
     await db.delete(pairing)
     await db.commit()
 
@@ -189,7 +198,7 @@ async def delete_pairing(
 @router.post("/{pairing_id}/discharge", response_model=PairingResponse)
 async def discharge_pairing(pairing_id: UUID) -> PairingResponse:
     """Discharge a pairing (mark as completed).
-    
+
     This is called when an infant is discharged from the hospital.
     The pairing remains in the system for audit purposes but
     the tags are no longer linked.
@@ -218,7 +227,7 @@ async def verify_gate_exit(
     gate_id: str,
 ) -> dict:
     """Verify if an infant-mother pair can exit through a gate.
-    
+
     Returns authorization status and triggers appropriate actions:
     - If authorized: logs the exit event
     - If unauthorized: triggers alarm and blocks exit

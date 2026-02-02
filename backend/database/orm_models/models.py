@@ -10,23 +10,28 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     Column,
     DateTime,
+)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (
     ForeignKey,
     Index,
     String,
     Text,
-    Enum as SQLEnum,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
+
     pass
 
 
 class TagStatus(str, Enum):
     """Status of an RFID/BLE tag."""
+
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"
     ALERT = "ALERT"
@@ -35,6 +40,7 @@ class TagStatus(str, Enum):
 
 class PairingStatus(str, Enum):
     """Status of infant-mother pairing."""
+
     ACTIVE = "ACTIVE"
     DISCHARGED = "DISCHARGED"
     SUSPENDED = "SUSPENDED"
@@ -42,6 +48,7 @@ class PairingStatus(str, Enum):
 
 class AlertSeverity(str, Enum):
     """Severity level of alerts."""
+
     INFO = "INFO"
     WARNING = "WARNING"
     CRITICAL = "CRITICAL"
@@ -51,9 +58,10 @@ class AlertSeverity(str, Enum):
 # Core Entity Models
 # =============================================================================
 
+
 class Infant(Base):
     """Infant record with associated tag."""
-    
+
     __tablename__ = "infants"
 
     id: Mapped[UUID] = mapped_column(
@@ -84,7 +92,7 @@ class Infant(Base):
 
 class Mother(Base):
     """Mother/Guardian entity."""
-    
+
     __tablename__ = "mothers"
 
     id: Mapped[UUID] = mapped_column(
@@ -117,7 +125,7 @@ class Mother(Base):
 
 class Pairing(Base):
     """Active pairing between infant and mother tags."""
-    
+
     __tablename__ = "pairings"
 
     id: Mapped[UUID] = mapped_column(
@@ -143,21 +151,18 @@ class Pairing(Base):
     )
 
     # Relationships
-    infant: Mapped["Infant"] = relationship(
-        back_populates="pairings", lazy="joined"
-    )
-    mother: Mapped["Mother"] = relationship(
-        back_populates="pairings", lazy="joined"
-    )
+    infant: Mapped["Infant"] = relationship(back_populates="pairings", lazy="joined")
+    mother: Mapped["Mother"] = relationship(back_populates="pairings", lazy="joined")
 
 
 # =============================================================================
 # Movement and Event Tracking
 # =============================================================================
 
+
 class MovementLog(Base):
     """Log of tag movement events from RTLS readers."""
-    
+
     __tablename__ = "movement_logs"
 
     id: Mapped[UUID] = mapped_column(
@@ -172,14 +177,12 @@ class MovementLog(Base):
         DateTime(timezone=True), default=datetime.utcnow, index=True
     )
 
-    __table_args__ = (
-        Index("ix_movement_logs_tag_timestamp", "tag_id", "timestamp"),
-    )
+    __table_args__ = (Index("ix_movement_logs_tag_timestamp", "tag_id", "timestamp"),)
 
 
 class Alert(Base):
     """Security and system alerts."""
-    
+
     __tablename__ = "alerts"
 
     id: Mapped[UUID] = mapped_column(
@@ -207,9 +210,10 @@ class Alert(Base):
 # User Management
 # =============================================================================
 
+
 class User(Base):
     """System users with role-based access."""
-    
+
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(
@@ -220,7 +224,9 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     role_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("roles.id"), nullable=True # Nullable for now to avoiding breaking if migration missed something, but ideally permissions rely on it
+        PGUUID(as_uuid=True),
+        ForeignKey("roles.id"),
+        nullable=True,  # Nullable for now to avoiding breaking if migration missed something, but ideally permissions rely on it
     )
     role: Mapped["Role"] = relationship("Role", lazy="joined")
     is_active: Mapped[bool] = mapped_column(default=True)
@@ -236,9 +242,10 @@ class User(Base):
 # Audit Logging
 # =============================================================================
 
+
 class AuditLog(Base):
     """Audit trail for all sensitive operations."""
-    
+
     __tablename__ = "audit_logs"
 
     id: Mapped[UUID] = mapped_column(
@@ -256,25 +263,26 @@ class AuditLog(Base):
         DateTime(timezone=True), default=datetime.utcnow, index=True
     )
 
-    __table_args__ = (
-        Index("ix_audit_logs_user_created", "user_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_audit_logs_user_created", "user_id", "created_at"),)
 
 
 # =============================================================================
 # RTLS Position Tracking
 # =============================================================================
 
+
 class RTLSPosition(Base):
     """Real-time location system position data."""
-    
+
     __tablename__ = "rtls_positions"
 
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default=uuid4
     )
     tag_id: Mapped[str] = mapped_column(String(50), index=True)
-    asset_type: Mapped[str] = mapped_column(String(20))  # infant, mother, staff, equipment
+    asset_type: Mapped[str] = mapped_column(
+        String(20)
+    )  # infant, mother, staff, equipment
     x: Mapped[float] = mapped_column()
     y: Mapped[float] = mapped_column()
     z: Mapped[float] = mapped_column(default=0.0)
@@ -297,8 +305,10 @@ class RTLSPosition(Base):
 # Gate and Access Control
 # =============================================================================
 
+
 class GateState(str, Enum):
     """State of a security gate."""
+
     OPEN = "OPEN"
     CLOSED = "CLOSED"
     FORCED_OPEN = "FORCED_OPEN"
@@ -308,7 +318,7 @@ class GateState(str, Enum):
 
 class Gate(Base):
     """Security gate/door entity."""
-    
+
     __tablename__ = "gates"
 
     id: Mapped[UUID] = mapped_column(
@@ -333,6 +343,7 @@ class Gate(Base):
 
 class GateEventType(str, Enum):
     """Types of gate events."""
+
     BADGE_SCAN = "badge_scan"
     GATE_STATE = "gate_state"
     FORCED = "forced"
@@ -341,13 +352,14 @@ class GateEventType(str, Enum):
 
 class GateEventResult(str, Enum):
     """Result of a gate access attempt."""
+
     GRANTED = "GRANTED"
     DENIED = "DENIED"
 
 
 class GateEvent(Base):
     """Event log for gate access and state changes."""
-    
+
     __tablename__ = "gate_events"
 
     id: Mapped[UUID] = mapped_column(
@@ -361,30 +373,34 @@ class GateEvent(Base):
     previous_state: Mapped[Optional[GateState]] = mapped_column(
         SQLEnum(GateState, name="gate_state"), nullable=True
     )
-    badge_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+    badge_id: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, index=True
+    )
     user_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     user_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     result: Mapped[Optional[GateEventResult]] = mapped_column(
         SQLEnum(GateEventResult), nullable=True
     )
-    direction: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)  # IN, OUT
+    direction: Mapped[Optional[str]] = mapped_column(
+        String(10), nullable=True
+    )  # IN, OUT
     duration_ms: Mapped[Optional[int]] = mapped_column(nullable=True)
     extra_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, index=True
     )
 
-    __table_args__ = (
-        Index("ix_gate_events_gate_timestamp", "gate_id", "timestamp"),
-    )
+    __table_args__ = (Index("ix_gate_events_gate_timestamp", "gate_id", "timestamp"),)
 
 
 # =============================================================================
 # Zones and Geofences
 # =============================================================================
 
+
 class ZoneType(str, Enum):
     """Type of security zone."""
+
     AUTHORIZED = "AUTHORIZED"
     RESTRICTED = "RESTRICTED"
     EXIT = "EXIT"
@@ -392,7 +408,7 @@ class ZoneType(str, Enum):
 
 class Zone(Base):
     """Geofence zone definition."""
-    
+
     __tablename__ = "zones"
 
     id: Mapped[UUID] = mapped_column(
@@ -416,8 +432,10 @@ class Zone(Base):
 # Camera Management
 # =============================================================================
 
+
 class CameraStatus(str, Enum):
     """Status of a camera."""
+
     ONLINE = "online"
     OFFLINE = "offline"
     ERROR = "error"
@@ -425,7 +443,7 @@ class CameraStatus(str, Enum):
 
 class Camera(Base):
     """Camera entity linked to gates and zones."""
-    
+
     __tablename__ = "cameras"
 
     id: Mapped[UUID] = mapped_column(
@@ -435,7 +453,9 @@ class Camera(Base):
     name: Mapped[str] = mapped_column(String(100))
     floor: Mapped[str] = mapped_column(String(20), index=True)
     zone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    gate_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+    gate_id: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, index=True
+    )
     stream_url: Mapped[str] = mapped_column(String(500))
     thumbnail_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     status: Mapped[CameraStatus] = mapped_column(
@@ -451,9 +471,10 @@ class Camera(Base):
 # Floorplan Management
 # =============================================================================
 
+
 class Floorplan(Base):
     """Floorplan image and coordinate mapping."""
-    
+
     __tablename__ = "floorplans"
 
     id: Mapped[UUID] = mapped_column(
@@ -477,8 +498,10 @@ class Floorplan(Base):
 # System Configuration
 # =============================================================================
 
+
 class ConfigType(str, Enum):
     """Type of configuration value."""
+
     STRING = "string"
     INTEGER = "integer"
     FLOAT = "float"
@@ -488,7 +511,7 @@ class ConfigType(str, Enum):
 
 class SystemConfig(Base):
     """Dynamic system configuration settings."""
-    
+
     __tablename__ = "system_config"
 
     key: Mapped[str] = mapped_column(String(100), primary_key=True)

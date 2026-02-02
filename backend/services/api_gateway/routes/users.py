@@ -10,14 +10,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import func, select, update, delete
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.orm_models.models import AuditLog, User
+from database.orm_models.roles import Role as RoleModel
+from shared_libraries.auth import require_admin
 from shared_libraries.database import get_db
 from shared_libraries.logging import get_logger
-from shared_libraries.auth import require_admin
-from database.orm_models.models import User, AuditLog
-from database.orm_models.roles import Role as RoleModel
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -27,8 +27,10 @@ logger = get_logger(__name__)
 # Pydantic Models
 # =============================================================================
 
+
 class UserBase(BaseModel):
     """Base user fields."""
+
     email: EmailStr
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
@@ -37,11 +39,13 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """User creation request."""
+
     password: str = Field(..., min_length=8, max_length=100)
 
 
 class UserUpdate(BaseModel):
     """User update request."""
+
     email: Optional[EmailStr] = None
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -51,6 +55,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(BaseModel):
     """User response model."""
+
     id: UUID
     email: str
     first_name: str
@@ -59,10 +64,10 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
-    
+
     @classmethod
     def model_validate(cls, obj: User) -> "UserResponse":
         # Custom validator to handle role relationship -> string mapping if Pydantic doesn't auto-resolve
@@ -78,12 +83,13 @@ class UserResponse(BaseModel):
             role=obj.role.name if obj.role else "unknown",
             is_active=obj.is_active,
             created_at=obj.created_at,
-            last_login=obj.last_login
+            last_login=obj.last_login,
         )
 
 
 class UserListResponse(BaseModel):
     """Paginated user list response."""
+
     users: List[UserResponse]
     total: int
     page: int
@@ -92,12 +98,14 @@ class UserListResponse(BaseModel):
 
 class PasswordUpdate(BaseModel):
     """Password update request."""
+
     current_password: str
     new_password: str = Field(..., min_length=8, max_length=100)
 
 
 class RoleAssignment(BaseModel):
     """Role assignment request."""
+
     role: str
 
 
@@ -105,10 +113,12 @@ class RoleAssignment(BaseModel):
 # Helper Functions
 # =============================================================================
 
+
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt or similar."""
     # In production, use proper password hashing (bcrypt, argon2, etc.)
     import hashlib
+
     return hashlib.sha256(password.encode()).hexdigest()
 
 
@@ -141,6 +151,7 @@ async def log_audit(
 # User CRUD Endpoints
 # =============================================================================
 
+
 @router.get("", response_model=UserListResponse)
 async def list_users(
     page: int = Query(1, ge=1),
@@ -153,44 +164,44 @@ async def list_users(
 ):
     """
     List all users with pagination and filtering.
-    
+
     Admin only.
     """
     query = select(User)
     count_query = select(func.count()).select_from(User)
-    
+
     # Apply filters
     if role:
         # Join Role to filter by name
         query = query.join(User.role).where(RoleModel.name == role)
         count_query = count_query.join(User.role).where(RoleModel.name == role)
-    
+
     if is_active is not None:
         query = query.where(User.is_active == is_active)
         count_query = count_query.where(User.is_active == is_active)
-    
+
     if search:
         search_filter = (
-            User.email.ilike(f"%{search}%") |
-            User.first_name.ilike(f"%{search}%") |
-            User.last_name.ilike(f"%{search}%")
+            User.email.ilike(f"%{search}%")
+            | User.first_name.ilike(f"%{search}%")
+            | User.last_name.ilike(f"%{search}%")
         )
         query = query.where(search_filter)
         count_query = count_query.where(search_filter)
-    
+
     # Get total count
     total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
-    
+
     # Apply pagination
     offset = (page - 1) * limit
     # Need to eager load role for response
     # lazy="joined" on relationship handles it, but good to be explicit if creating response explicitly
     query = query.order_by(User.created_at.desc()).offset(offset).limit(limit)
-    
+
     result = await db.execute(query)
     users = result.scalars().all()
-    
+
     return UserListResponse(
         users=[UserResponse.model_validate(u) for u in users],
         total=total,
@@ -207,7 +218,7 @@ async def create_user(
 ):
     """
     Create a new user.
-    
+
     Admin only.
     """
     # Check if email already exists
@@ -217,12 +228,14 @@ async def create_user(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with this email already exists",
         )
-    
+
     # Resolve Role
-    role_result = await db.execute(select(RoleModel).where(RoleModel.name == user_data.role))
+    role_result = await db.execute(
+        select(RoleModel).where(RoleModel.name == user_data.role)
+    )
     role_obj = role_result.scalar_one_or_none()
     if not role_obj:
-         raise HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Role '{user_data.role}' not found",
         )
@@ -232,23 +245,27 @@ async def create_user(
         email=user_data.email,
         first_name=user_data.first_name,
         last_name=user_data.last_name,
-        role=role_obj, # relationship assignment
+        role=role_obj,  # relationship assignment
         hashed_password=hash_password(user_data.password),
         is_active=True,
     )
     db.add(user)
     await db.flush()
     await db.refresh(user)
-    
+
     # Audit log
     await log_audit(
-        db, current_user.id, "create_user", "user", str(user.id),
+        db,
+        current_user.id,
+        "create_user",
+        "user",
+        str(user.id),
         {"email": user.email, "role": role_obj.name},
     )
     await db.commit()
-    
+
     logger.info("user_created", user_id=str(user.id), email=user.email)
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -260,18 +277,18 @@ async def get_user(
 ):
     """
     Get a specific user by ID.
-    
+
     Admin only.
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -284,18 +301,18 @@ async def update_user(
 ):
     """
     Update a user.
-    
+
     Admin only.
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Check email uniqueness if changing
     if user_data.email and user_data.email != user.email:
         existing = await db.execute(select(User).where(User.email == user_data.email))
@@ -304,11 +321,13 @@ async def update_user(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already in use",
             )
-    
+
     # Resolve role if provided
     role_obj = None
     if user_data.role:
-        role_result = await db.execute(select(RoleModel).where(RoleModel.name == user_data.role))
+        role_result = await db.execute(
+            select(RoleModel).where(RoleModel.name == user_data.role)
+        )
         role_obj = role_result.scalar_one_or_none()
         if not role_obj:
             raise HTTPException(
@@ -321,22 +340,26 @@ async def update_user(
     if update_data:
         for key, value in update_data.items():
             setattr(user, key, value)
-    
+
     if role_obj:
         user.role = role_obj
 
     await db.flush()
     await db.refresh(user)
-    
+
     # Audit log (simplified)
     await log_audit(
-        db, current_user.id, "update_user", "user", str(user.id),
+        db,
+        current_user.id,
+        "update_user",
+        "user",
+        str(user.id),
         {"updated_fields": list(update_data.keys()) + (["role"] if role_obj else [])},
     )
     await db.commit()
-    
+
     logger.info("user_updated", user_id=str(user.id))
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -348,7 +371,7 @@ async def delete_user(
 ):
     """
     Delete a user (soft delete by deactivating).
-    
+
     Admin only. Cannot delete self.
     """
     if user_id == current_user.id:
@@ -356,34 +379,39 @@ async def delete_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete your own account",
         )
-    
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Soft delete - deactivate
     user.is_active = False
-    
+
     # Audit log
     await log_audit(
-        db, current_user.id, "delete_user", "user", str(user.id),
+        db,
+        current_user.id,
+        "delete_user",
+        "user",
+        str(user.id),
         {"email": user.email},
     )
     await db.commit()
-    
+
     logger.info("user_deleted", user_id=str(user.id))
-    
+
     return None
 
 
 # =============================================================================
 # Role Management
 # =============================================================================
+
 
 @router.put("/{user_id}/role", response_model=UserResponse)
 async def assign_role(
@@ -394,45 +422,52 @@ async def assign_role(
 ):
     """
     Assign a role to a user.
-    
+
     Admin only.
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
-    role_result = await db.execute(select(RoleModel).where(RoleModel.name == role_data.role))
+
+    role_result = await db.execute(
+        select(RoleModel).where(RoleModel.name == role_data.role)
+    )
     role_obj = role_result.scalar_one_or_none()
     if not role_obj:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Role '{role_data.role}' not found",
-            )
-    
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Role '{role_data.role}' not found",
+        )
+
     old_role_name = user.role.name if user.role else "none"
     user.role = role_obj
-    
+
     # Audit log
     await log_audit(
-        db, current_user.id, "assign_role", "user", str(user.id),
+        db,
+        current_user.id,
+        "assign_role",
+        "user",
+        str(user.id),
         {"old_role": old_role_name, "new_role": role_obj.name},
     )
     await db.commit()
     await db.refresh(user)
-    
+
     logger.info("role_assigned", user_id=str(user.id), role=role_obj.name)
-    
+
     return UserResponse.model_validate(user)
 
 
 # =============================================================================
 # Password Management
 # =============================================================================
+
 
 @router.post("/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)
 async def reset_password(
@@ -442,31 +477,35 @@ async def reset_password(
 ):
     """
     Reset a user's password (admin-initiated).
-    
+
     Generates a temporary password and marks account for password change.
     In production, this would send an email with reset link.
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Generate temporary password (in production, send reset email)
     temp_password = "TempPass123!"  # Would be randomly generated
     user.hashed_password = hash_password(temp_password)
-    
+
     # Audit log
     await log_audit(
-        db, current_user.id, "reset_password", "user", str(user.id),
+        db,
+        current_user.id,
+        "reset_password",
+        "user",
+        str(user.id),
     )
     await db.commit()
-    
+
     logger.info("password_reset", user_id=str(user.id))
-    
+
     # In production, would send email with reset instructions
     return None
 
@@ -474,6 +513,7 @@ async def reset_password(
 # =============================================================================
 # Self-Service Endpoints
 # =============================================================================
+
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
@@ -492,7 +532,7 @@ async def update_current_user_profile(
 ):
     """
     Update the current user's profile.
-    
+
     Cannot change own role.
     """
     # Prevent role self-assignment
@@ -501,7 +541,7 @@ async def update_current_user_profile(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot change your own role",
         )
-    
+
     # Check email uniqueness
     if user_data.email and user_data.email != current_user.email:
         existing = await db.execute(select(User).where(User.email == user_data.email))
@@ -510,15 +550,17 @@ async def update_current_user_profile(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already in use",
             )
-    
+
     # Apply updates (excluding role)
-    update_data = user_data.model_dump(exclude_unset=True, exclude={"role", "is_active"})
+    update_data = user_data.model_dump(
+        exclude_unset=True, exclude={"role", "is_active"}
+    )
     if update_data:
         for key, value in update_data.items():
             setattr(current_user, key, value)
         await db.commit()
         await db.refresh(current_user)
-    
+
     return UserResponse.model_validate(current_user)
 
 
@@ -530,21 +572,27 @@ async def change_own_password(
 ):
     """Change the current user's password."""
     # Verify current password
-    if not verify_password(password_data.current_password, current_user.hashed_password):
+    if not verify_password(
+        password_data.current_password, current_user.hashed_password
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Current password is incorrect",
         )
-    
+
     # Update password
     current_user.hashed_password = hash_password(password_data.new_password)
-    
+
     # Audit log
     await log_audit(
-        db, current_user.id, "change_password", "user", str(current_user.id),
+        db,
+        current_user.id,
+        "change_password",
+        "user",
+        str(current_user.id),
     )
     await db.commit()
-    
+
     logger.info("password_changed", user_id=str(current_user.id))
-    
+
     return None

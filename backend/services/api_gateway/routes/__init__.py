@@ -1,8 +1,18 @@
 """Routes package for API Gateway."""
 
 from . import (
-    alerts, cameras, gates, health, infants, mothers,
-    pairings, rtls, users, websocket, zones, roles
+    alerts,
+    cameras,
+    gates,
+    health,
+    infants,
+    mothers,
+    pairings,
+    roles,
+    rtls,
+    users,
+    websocket,
+    zones,
 )
 
 __all__ = [
@@ -19,4 +29,3 @@ __all__ = [
     "zones",
     "roles",
 ]
-

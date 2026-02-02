@@ -10,7 +10,7 @@ import structlog
 
 def setup_logging(service_name: str, log_level: str = "INFO") -> None:
     """Configure structured logging for a service.
-    
+
     Args:
         service_name: Name of the service for log context.
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR).
@@ -30,9 +30,11 @@ def setup_logging(service_name: str, log_level: str = "INFO") -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.dev.set_exc_info,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer()
-            if log_level == "DEBUG"
-            else structlog.processors.JSONRenderer(),
+            (
+                structlog.dev.ConsoleRenderer()
+                if log_level == "DEBUG"
+                else structlog.processors.JSONRenderer()
+            ),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
             getattr(logging, log_level.upper())
@@ -49,10 +51,10 @@ def setup_logging(service_name: str, log_level: str = "INFO") -> None:
 
 def get_logger(name: str) -> structlog.BoundLogger:
     """Get a logger instance with the given name.
-    
+
     Args:
         name: Logger name (typically module name).
-        
+
     Returns:
         Configured structlog logger.
     """

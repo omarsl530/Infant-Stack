@@ -5,24 +5,24 @@ Provides JWT verification via JWKS and role-based access control for FastAPI.
 Uses Keycloak as the Identity Provider (IdP) with OpenID Connect.
 """
 
-import httpx
 from datetime import datetime, timezone
-from typing import Optional, List, Any
+from typing import Any, List, Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status, Security
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
-from jose import jwt, jwk, JWTError
+import httpx
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwk, jwt
 from jose.exceptions import JWKError
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from shared_libraries.config import get_settings
-from shared_libraries.logging import get_logger
-from shared_libraries.database import get_db
 from database.orm_models.models import User
 from database.orm_models.roles import Role
+from shared_libraries.config import get_settings
+from shared_libraries.database import get_db
+from shared_libraries.logging import get_logger
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -37,6 +37,7 @@ bearer_scheme = HTTPBearer(
 
 class TokenPayload(BaseModel):
     """Validated JWT token payload."""
+
     sub: str  # Subject (user ID)
     email: Optional[str] = None
     preferred_username: Optional[str] = None
@@ -52,6 +53,7 @@ class TokenPayload(BaseModel):
 
 class CurrentUser(BaseModel):
     """Represents the authenticated user."""
+
     id: str  # Keycloak user ID (sub claim)
     email: Optional[str] = None
     username: Optional[str] = None
@@ -78,7 +80,9 @@ class CurrentUser(BaseModel):
             return True
         if permission in self.permissions:
             return True
-        resource, _ = permission.split(":", 1) if ":" in permission else (permission, "")
+        resource, _ = (
+            permission.split(":", 1) if ":" in permission else (permission, "")
+        )
         if f"{resource}:*" in self.permissions:
             return True
         return False
@@ -86,7 +90,7 @@ class CurrentUser(BaseModel):
 
 class JWKSClient:
     """JSON Web Key Set client for fetching and caching public keys."""
-    
+
     def __init__(self, jwks_url: str, cache_ttl: int = 3600):
         self.jwks_url = jwks_url
         self.cache_ttl = cache_ttl
@@ -124,6 +128,7 @@ class JWKSClient:
 
 _jwks_client: Optional[JWKSClient] = None
 
+
 def get_jwks_client() -> JWKSClient:
     global _jwks_client
     if _jwks_client is None:
@@ -138,12 +143,16 @@ def extract_roles(payload: TokenPayload) -> List[str]:
         realm_roles = payload.realm_access.get("roles", [])
         roles.update(realm_roles)
     if payload.resource_access:
-        client_roles = payload.resource_access.get(
-            settings.keycloak_client_id, {}
-        ).get("roles", [])
+        client_roles = payload.resource_access.get(settings.keycloak_client_id, {}).get(
+            "roles", []
+        )
         roles.update(client_roles)
-    
-    internal_roles = {"offline_access", "uma_authorization", f"default-roles-{settings.keycloak_realm}"}
+
+    internal_roles = {
+        "offline_access",
+        "uma_authorization",
+        f"default-roles-{settings.keycloak_realm}",
+    }
     return list(roles - internal_roles)
 
 
@@ -162,13 +171,17 @@ async def verify_token(token: str) -> TokenPayload:
         if not kid:
             logger.warning("token_verification_failed_no_kid", header=unverified_header)
             raise credentials_exception
-        
+
         jwks_client = get_jwks_client()
         key_data = await jwks_client.get_key(kid)
         if not key_data:
-            logger.warning("token_verification_failed_key_not_found", kid=kid, available_kids=list(jwks_client._keys.keys()))
+            logger.warning(
+                "token_verification_failed_key_not_found",
+                kid=kid,
+                available_kids=list(jwks_client._keys.keys()),
+            )
             raise credentials_exception
-        
+
         public_key = jwk.construct(key_data)
         payload_dict = jwt.decode(
             token,
@@ -190,6 +203,7 @@ async def verify_token(token: str) -> TokenPayload:
 
 class Permissions:
     """System permissions constants."""
+
     USER_READ = "user:read"
     USER_WRITE = "user:write"
     USER_DELETE = "user:delete"
@@ -209,38 +223,40 @@ class Permissions:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
-    db = Depends(get_db),
+    db=Depends(get_db),
 ) -> CurrentUser:
     """Get the current authenticated user with DB-backed roles/permissions."""
     token = credentials.credentials
     payload = await verify_token(token)
-    
+
     try:
         user_uuid = payload.sub
-        query = select(User).where(User.id == user_uuid).options(selectinload(User.role))
+        query = (
+            select(User).where(User.id == user_uuid).options(selectinload(User.role))
+        )
         result = await db.execute(query)
         db_user = result.scalar_one_or_none()
-        
+
         # JIT Provisioning: If user doesn't exist, create them
         if not db_user:
             logger.info("jit_provisioning_user", user_id=user_uuid, email=payload.email)
-            
+
             # Find admin role
             role_query = select(Role).where(Role.name == "admin")
             role_result = await db.execute(role_query)
             admin_role = role_result.scalar_one_or_none()
-            
+
             if not admin_role:
-                 # Fallback to any role if admin not found (bootstrap issue)
-                 fallback_query = select(Role).limit(1)
-                 fallback_result = await db.execute(fallback_query)
-                 admin_role = fallback_result.scalar_one_or_none()
+                # Fallback to any role if admin not found (bootstrap issue)
+                fallback_query = select(Role).limit(1)
+                fallback_result = await db.execute(fallback_query)
+                admin_role = fallback_result.scalar_one_or_none()
 
             # Safe username generation
             email = payload.email or ""
             username = payload.preferred_username
             if not username and email:
-                username = email.split('@')[0]
+                username = email.split("@")[0]
             if not username:
                 username = f"user_{user_uuid[:8]}"
 
@@ -250,21 +266,25 @@ async def get_current_user(
                 # username field does not exist in User model
                 first_name=payload.given_name or "",
                 last_name=payload.family_name or "",
-                hashed_password="OIDC_LOGIN_NO_PASSWORD", # Placeholder for OIDC users
+                hashed_password="OIDC_LOGIN_NO_PASSWORD",  # Placeholder for OIDC users
                 is_active=True,
-                role_id=admin_role.id if admin_role else None
+                role_id=admin_role.id if admin_role else None,
             )
             db.add(new_user)
             await db.commit()
             await db.refresh(new_user)
             # Re-fetch with relationship
-            query = select(User).where(User.id == user_uuid).options(selectinload(User.role))
+            query = (
+                select(User)
+                .where(User.id == user_uuid)
+                .options(selectinload(User.role))
+            )
             result = await db.execute(query)
             db_user = result.scalar_one_or_none()
 
         effective_roles = []
         effective_permissions = []
-        
+
         if db_user and db_user.role:
             effective_roles = [db_user.role.name]
             perms = db_user.role.permissions
@@ -284,7 +304,7 @@ async def get_current_user(
 
     except Exception as e:
         logger.error("auth_db_lookup_failed", error=str(e))
-        await db.rollback() # Ensure session is clean for subsequent requests
+        await db.rollback()  # Ensure session is clean for subsequent requests
         effective_roles = extract_roles(payload)
         effective_permissions = []
 
@@ -301,32 +321,47 @@ async def get_current_user(
 
 def require_roles(required_roles: List[str], require_all: bool = False):
     """Dependency requiring specific roles."""
-    async def role_checker(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+
+    async def role_checker(
+        user: CurrentUser = Depends(get_current_user),
+    ) -> CurrentUser:
         if require_all:
             has_required = all(role in user.roles for role in required_roles)
         else:
             has_required = any(role in user.roles for role in required_roles)
-        
+
         if not has_required:
-            logger.warning("access_denied_role", user=user.id, roles=user.roles, required=required_roles)
+            logger.warning(
+                "access_denied_role",
+                user=user.id,
+                roles=user.roles,
+                required=required_roles,
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions (Role)",
             )
         return user
+
     return role_checker
 
 
 def require_permission(permission: str):
     """Dependency requiring a specific granular permission."""
-    async def permission_checker(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+
+    async def permission_checker(
+        user: CurrentUser = Depends(get_current_user),
+    ) -> CurrentUser:
         if not user.has_permission(permission):
-            logger.warning("access_denied_permission", user_id=user.id, permission=permission)
+            logger.warning(
+                "access_denied_permission", user_id=user.id, permission=permission
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Insufficient permissions: {permission}",
             )
         return user
+
     return permission_checker
 
 
@@ -337,16 +372,20 @@ require_audit_read = require_permission(Permissions.AUDIT_READ)
 
 bearer_scheme_optional = HTTPBearer(auto_error=False)
 
+
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(bearer_scheme_optional),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(
+        bearer_scheme_optional
+    ),
 ) -> Optional[CurrentUser]:
     if not credentials:
         return None
     try:
         from shared_libraries.database import async_session_factory
+
         async with async_session_factory() as db:
-             token = credentials.credentials
-             payload = await verify_token(token)
-             return await get_current_user(credentials, db)
+            token = credentials.credentials
+            payload = await verify_token(token)
+            return await get_current_user(credentials, db)
     except Exception:
         return None

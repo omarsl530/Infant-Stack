@@ -8,14 +8,20 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared_libraries.database import get_db
+from database.orm_models.models import (
+    Gate,
+    GateEvent,
+    GateEventResult,
+    GateEventType,
+    GateState,
+)
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
-from database.orm_models.models import Gate, GateEvent, GateState, GateEventType, GateEventResult
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
@@ -24,8 +30,10 @@ router = APIRouter()
 # Request/Response Models
 # =============================================================================
 
+
 class GateResponse(BaseModel):
     """Response model for gate data."""
+
     id: UUID
     gate_id: str
     name: str
@@ -42,12 +50,14 @@ class GateResponse(BaseModel):
 
 class GateList(BaseModel):
     """List of gates."""
+
     items: list[GateResponse]
     total: int
 
 
 class GateCreate(BaseModel):
     """Request model for creating a gate."""
+
     gate_id: str = Field(..., min_length=1, max_length=50)
     name: str = Field(..., min_length=1, max_length=100)
     floor: str = Field(..., min_length=1, max_length=20)
@@ -57,6 +67,7 @@ class GateCreate(BaseModel):
 
 class GateUpdate(BaseModel):
     """Request model for updating a gate."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     zone: Optional[str] = Field(None, min_length=1, max_length=50)
     state: Optional[str] = None
@@ -65,6 +76,7 @@ class GateUpdate(BaseModel):
 
 class GateEventResponse(BaseModel):
     """Response model for gate event data."""
+
     id: UUID
     gate_id: str
     event_type: str
@@ -84,6 +96,7 @@ class GateEventResponse(BaseModel):
 
 class GateEventList(BaseModel):
     """List of gate events."""
+
     items: list[GateEventResponse]
     total: int
     has_more: bool
@@ -92,6 +105,7 @@ class GateEventList(BaseModel):
 # =============================================================================
 # Gate CRUD Endpoints
 # =============================================================================
+
 
 @router.get("/", response_model=GateList)
 async def list_gates(
@@ -102,18 +116,18 @@ async def list_gates(
 ) -> GateList:
     """List all gates with optional filtering."""
     query = select(Gate).order_by(Gate.floor, Gate.name)
-    
+
     if floor:
         query = query.where(Gate.floor == floor)
     if state:
         query = query.where(Gate.state == state)
-    
+
     result = await db.execute(query)
     gates = result.scalars().all()
-    
+
     count_result = await db.execute(select(func.count(Gate.id)))
     total = count_result.scalar() or 0
-    
+
     items = [
         GateResponse(
             id=g.id,
@@ -128,7 +142,7 @@ async def list_gates(
         )
         for g in gates
     ]
-    
+
     return GateList(items=items, total=total)
 
 
@@ -141,13 +155,13 @@ async def get_gate(
     """Get a specific gate by gate_id."""
     result = await db.execute(select(Gate).where(Gate.gate_id == gate_id))
     gate = result.scalar_one_or_none()
-    
+
     if not gate:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Gate {gate_id} not found",
         )
-    
+
     return GateResponse(
         id=gate.id,
         gate_id=gate.gate_id,
@@ -175,7 +189,7 @@ async def create_gate(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Gate with ID {gate_data.gate_id} already exists",
         )
-    
+
     gate = Gate(
         gate_id=gate_data.gate_id,
         name=gate_data.name,
@@ -185,7 +199,7 @@ async def create_gate(
     )
     db.add(gate)
     await db.flush()
-    
+
     return GateResponse(
         id=gate.id,
         gate_id=gate.gate_id,
@@ -209,13 +223,13 @@ async def update_gate(
     """Update a gate."""
     result = await db.execute(select(Gate).where(Gate.gate_id == gate_id))
     gate = result.scalar_one_or_none()
-    
+
     if not gate:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Gate {gate_id} not found",
         )
-    
+
     if gate_data.name is not None:
         gate.name = gate_data.name
     if gate_data.zone is not None:
@@ -225,9 +239,9 @@ async def update_gate(
     if gate_data.state is not None:
         gate.state = GateState(gate_data.state)
         gate.last_state_change = datetime.utcnow()
-    
+
     await db.flush()
-    
+
     return GateResponse(
         id=gate.id,
         gate_id=gate.gate_id,
@@ -250,21 +264,22 @@ async def delete_gate(
     """Delete a gate."""
     result = await db.execute(select(Gate).where(Gate.gate_id == gate_id))
     gate = result.scalar_one_or_none()
-    
+
     if not gate:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Gate {gate_id} not found",
         )
-    
+
     await db.delete(gate)
-    
+
     return {"status": "deleted", "gate_id": gate_id}
 
 
 # =============================================================================
 # Gate Events Endpoints
 # =============================================================================
+
 
 @router.get("/{gate_id}/events", response_model=GateEventList)
 async def get_gate_events(
@@ -279,24 +294,24 @@ async def get_gate_events(
 ) -> GateEventList:
     """Get events for a specific gate."""
     query = select(GateEvent).where(GateEvent.gate_id == gate_id)
-    
+
     if from_time:
         query = query.where(GateEvent.timestamp >= from_time)
     if to_time:
         query = query.where(GateEvent.timestamp <= to_time)
     if event_type:
         query = query.where(GateEvent.event_type == event_type)
-    
+
     # Get total count
     count_query = select(func.count()).select_from(query.subquery())
     count_result = await db.execute(count_query)
     total = count_result.scalar() or 0
-    
+
     # Apply pagination and ordering
     query = query.order_by(GateEvent.timestamp.desc()).offset(offset).limit(limit)
     result = await db.execute(query)
     events = result.scalars().all()
-    
+
     items = [
         GateEventResponse(
             id=e.id,
@@ -314,7 +329,7 @@ async def get_gate_events(
         )
         for e in events
     ]
-    
+
     return GateEventList(items=items, total=total, has_more=offset + len(items) < total)
 
 
@@ -327,17 +342,17 @@ async def get_latest_events(
 ) -> GateEventList:
     """Get the latest gate events across all gates."""
     query = select(GateEvent)
-    
+
     if event_type:
         query = query.where(GateEvent.event_type == event_type)
-    
+
     query = query.order_by(GateEvent.timestamp.desc()).limit(limit)
     result = await db.execute(query)
     events = result.scalars().all()
-    
+
     count_result = await db.execute(select(func.count(GateEvent.id)))
     total = count_result.scalar() or 0
-    
+
     items = [
         GateEventResponse(
             id=e.id,
@@ -355,5 +370,5 @@ async def get_latest_events(
         )
         for e in events
     ]
-    
+
     return GateEventList(items=items, total=total, has_more=len(items) < total)

@@ -1,18 +1,17 @@
-import os
-import json
 import asyncio
+import json
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Type
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-from sqlalchemy import select, delete, func, and_
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-
 import structlog
+from apscheduler.schedulers.blocking import BlockingScheduler
+from sqlalchemy import and_, delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Import models
-from database.orm_models.models import RTLSPosition, MovementLog
+from database.orm_models.models import MovementLog, RTLSPosition
 
 # Configuration
 DATABASE_URL = os.getenv(

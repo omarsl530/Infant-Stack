@@ -10,12 +10,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared_libraries.database import get_db
+from database.orm_models.models import Floorplan, Zone, ZoneType
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
-from database.orm_models.models import Zone, ZoneType, Floorplan
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
@@ -24,8 +24,10 @@ router = APIRouter()
 # Zone Models
 # =============================================================================
 
+
 class ZoneResponse(BaseModel):
     """Response model for zone data."""
+
     id: UUID
     name: str
     floor: str
@@ -42,12 +44,14 @@ class ZoneResponse(BaseModel):
 
 class ZoneList(BaseModel):
     """List of zones."""
+
     items: list[ZoneResponse]
     total: int
 
 
 class ZoneCreate(BaseModel):
     """Request model for creating a zone."""
+
     name: str = Field(..., min_length=1, max_length=100)
     floor: str = Field(..., min_length=1, max_length=20)
     zone_type: str = Field(...)  # authorized, restricted, exit
@@ -57,6 +61,7 @@ class ZoneCreate(BaseModel):
 
 class ZoneUpdate(BaseModel):
     """Request model for updating a zone."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     zone_type: Optional[str] = None
     polygon: Optional[dict] = None
@@ -68,8 +73,10 @@ class ZoneUpdate(BaseModel):
 # Floorplan Models
 # =============================================================================
 
+
 class FloorplanResponse(BaseModel):
     """Response model for floorplan data."""
+
     id: UUID
     floor: str
     name: str
@@ -87,12 +94,14 @@ class FloorplanResponse(BaseModel):
 
 class FloorplanList(BaseModel):
     """List of floorplans."""
+
     items: list[FloorplanResponse]
     total: int
 
 
 class FloorplanCreate(BaseModel):
     """Request model for creating a floorplan."""
+
     floor: str = Field(..., min_length=1, max_length=20)
     name: str = Field(..., min_length=1, max_length=100)
     image_url: str = Field(..., min_length=1, max_length=500)
@@ -107,6 +116,7 @@ class FloorplanCreate(BaseModel):
 # Zone Endpoints
 # =============================================================================
 
+
 @router.get("/zones", response_model=ZoneList)
 async def list_zones(
     floor: Optional[str] = None,
@@ -117,20 +127,20 @@ async def list_zones(
 ) -> ZoneList:
     """List all zones with optional filtering."""
     query = select(Zone).order_by(Zone.floor, Zone.name)
-    
+
     if floor:
         query = query.where(Zone.floor == floor)
     if zone_type:
         query = query.where(Zone.zone_type == zone_type)
     if is_active is not None:
         query = query.where(Zone.is_active == is_active)
-    
+
     result = await db.execute(query)
     zones = result.scalars().all()
-    
+
     count_result = await db.execute(select(func.count(Zone.id)))
     total = count_result.scalar() or 0
-    
+
     items = [
         ZoneResponse(
             id=z.id,
@@ -145,7 +155,7 @@ async def list_zones(
         )
         for z in zones
     ]
-    
+
     return ZoneList(items=items, total=total)
 
 
@@ -158,13 +168,13 @@ async def get_zone(
     """Get a specific zone by ID."""
     result = await db.execute(select(Zone).where(Zone.id == zone_id))
     zone = result.scalar_one_or_none()
-    
+
     if not zone:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Zone {zone_id} not found",
         )
-    
+
     return ZoneResponse(
         id=zone.id,
         name=zone.name,
@@ -194,7 +204,7 @@ async def create_zone(
     )
     db.add(zone)
     await db.flush()
-    
+
     return ZoneResponse(
         id=zone.id,
         name=zone.name,
@@ -218,13 +228,13 @@ async def update_zone(
     """Update a zone."""
     result = await db.execute(select(Zone).where(Zone.id == zone_id))
     zone = result.scalar_one_or_none()
-    
+
     if not zone:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Zone {zone_id} not found",
         )
-    
+
     if zone_data.name is not None:
         zone.name = zone_data.name
     if zone_data.zone_type is not None:
@@ -235,9 +245,9 @@ async def update_zone(
         zone.color = zone_data.color
     if zone_data.is_active is not None:
         zone.is_active = zone_data.is_active
-    
+
     await db.flush()
-    
+
     return ZoneResponse(
         id=zone.id,
         name=zone.name,
@@ -260,21 +270,22 @@ async def delete_zone(
     """Delete a zone."""
     result = await db.execute(select(Zone).where(Zone.id == zone_id))
     zone = result.scalar_one_or_none()
-    
+
     if not zone:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Zone {zone_id} not found",
         )
-    
+
     await db.delete(zone)
-    
+
     return {"status": "deleted", "zone_id": str(zone_id)}
 
 
 # =============================================================================
 # Floorplan Endpoints
 # =============================================================================
+
 
 @router.get("/floorplans", response_model=FloorplanList)
 async def list_floorplans(
@@ -284,7 +295,7 @@ async def list_floorplans(
     """List all floorplans."""
     result = await db.execute(select(Floorplan).order_by(Floorplan.floor))
     floorplans = result.scalars().all()
-    
+
     items = [
         FloorplanResponse(
             id=f.id,
@@ -300,7 +311,7 @@ async def list_floorplans(
         )
         for f in floorplans
     ]
-    
+
     return FloorplanList(items=items, total=len(items))
 
 
@@ -313,13 +324,13 @@ async def get_floorplan(
     """Get a specific floorplan by floor identifier."""
     result = await db.execute(select(Floorplan).where(Floorplan.floor == floor))
     floorplan = result.scalar_one_or_none()
-    
+
     if not floorplan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Floorplan for floor {floor} not found",
         )
-    
+
     return FloorplanResponse(
         id=floorplan.id,
         floor=floorplan.floor,
@@ -334,20 +345,24 @@ async def get_floorplan(
     )
 
 
-@router.post("/floorplans", response_model=FloorplanResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/floorplans", response_model=FloorplanResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_floorplan(
     floorplan_data: FloorplanCreate,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_admin),
 ) -> FloorplanResponse:
     """Create a new floorplan."""
-    existing = await db.execute(select(Floorplan).where(Floorplan.floor == floorplan_data.floor))
+    existing = await db.execute(
+        select(Floorplan).where(Floorplan.floor == floorplan_data.floor)
+    )
     if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Floorplan for floor {floorplan_data.floor} already exists",
         )
-    
+
     floorplan = Floorplan(
         floor=floorplan_data.floor,
         name=floorplan_data.name,
@@ -360,7 +375,7 @@ async def create_floorplan(
     )
     db.add(floorplan)
     await db.flush()
-    
+
     return FloorplanResponse(
         id=floorplan.id,
         floor=floorplan.floor,
@@ -384,13 +399,13 @@ async def delete_floorplan(
     """Delete a floorplan."""
     result = await db.execute(select(Floorplan).where(Floorplan.floor == floor))
     floorplan = result.scalar_one_or_none()
-    
+
     if not floorplan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Floorplan for floor {floor} not found",
         )
-    
+
     await db.delete(floorplan)
-    
+
     return {"status": "deleted", "floor": floor}

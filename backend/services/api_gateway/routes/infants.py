@@ -8,13 +8,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
-from sqlalchemy.orm import selectinload, joinedload
-from shared_libraries.database import get_db
+from database.orm_models.models import Infant, Pairing, TagStatus
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
-from database.orm_models.models import Infant, TagStatus, Pairing
+from shared_libraries.database import get_db
 
 router = APIRouter()
 router = APIRouter()
@@ -22,6 +22,7 @@ router = APIRouter()
 
 class InfantCreate(BaseModel):
     """Request model for creating an infant record."""
+
     tag_id: str
     name: str  # Combined name for simplicity
     ward: str
@@ -32,6 +33,7 @@ class InfantCreate(BaseModel):
 
 class InfantResponse(BaseModel):
     """Response model for infant data."""
+
     id: UUID
     tag_id: str
     name: str
@@ -51,6 +53,7 @@ class InfantResponse(BaseModel):
 
 class InfantList(BaseModel):
     """Paginated list of infants."""
+
     items: list[InfantResponse]
     total: int
 
@@ -65,19 +68,19 @@ async def list_infants(
     """List all infants with optional filtering."""
     # 1. Fetch Infants
     query = select(Infant)
-    
+
     if ward:
         query = query.where(Infant.ward == ward)
     if status:
         query = query.where(Infant.tag_status == status)
-    
+
     result = await db.execute(query)
     infants = result.unique().scalars().all()
-    
+
     # Count total (distinct infants)
     count_result = await db.execute(select(func.count(Infant.id)))
     total = count_result.scalar() or 0
-    
+
     items = []
     for infant in infants:
         # Get active pairing if exists
@@ -88,20 +91,22 @@ async def list_infants(
                 mother_name = f"{pairing.mother.first_name} {pairing.mother.last_name}"
                 mother_tag_id = pairing.mother.tag_id
                 break
-        
-        items.append(InfantResponse(
-            id=infant.id,
-            tag_id=infant.tag_id,
-            name=f"{infant.first_name} {infant.last_name}",
-            ward=infant.ward,
-            room=infant.room,
-            tag_status=infant.tag_status.value,
-            date_of_birth=infant.date_of_birth,
-            created_at=infant.created_at,
-            mother_name=mother_name,
-            mother_tag_id=mother_tag_id,
-        ))
-    
+
+        items.append(
+            InfantResponse(
+                id=infant.id,
+                tag_id=infant.tag_id,
+                name=f"{infant.first_name} {infant.last_name}",
+                ward=infant.ward,
+                room=infant.room,
+                tag_status=infant.tag_status.value,
+                date_of_birth=infant.date_of_birth,
+                created_at=infant.created_at,
+                mother_name=mother_name,
+                mother_tag_id=mother_tag_id,
+            )
+        )
+
     return InfantList(items=items, total=total)
 
 
@@ -116,10 +121,10 @@ async def create_infant(
     name_parts = infant_data.name.split(" ", 1)
     first_name = name_parts[0]
     last_name = name_parts[1] if len(name_parts) > 1 else ""
-    
+
     # Generate MRN
     mrn = f"MRN-{infant_data.tag_id}"
-    
+
     infant = Infant(
         tag_id=infant_data.tag_id,
         medical_record_number=mrn,
@@ -130,7 +135,7 @@ async def create_infant(
         room=infant_data.room,
         tag_status=TagStatus.ACTIVE,
     )
-    
+
     try:
         db.add(infant)
         await db.flush()
@@ -141,7 +146,7 @@ async def create_infant(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Infant with tag ID {infant_data.tag_id} or MRN already exists",
         )
-    
+
     return InfantResponse(
         id=infant.id,
         tag_id=infant.tag_id,
@@ -163,13 +168,13 @@ async def get_infant(
     """Get infant by ID."""
     result = await db.execute(select(Infant).where(Infant.id == infant_id))
     infant = result.scalar_one_or_none()
-    
+
     if not infant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Infant {infant_id} not found",
         )
-    
+
     return InfantResponse(
         id=infant.id,
         tag_id=infant.tag_id,
@@ -192,17 +197,17 @@ async def delete_infant(
     # Check infant exists
     result = await db.execute(select(Infant).where(Infant.id == infant_id))
     infant = result.unique().scalar_one_or_none()
-    
+
     if not infant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Infant {infant_id} not found",
         )
-    
+
     # Delete associated pairings via ORM (avoids StaleDataError)
     for pairing in list(infant.pairings):
         await db.delete(pairing)
-    
+
     # Delete infant
     await db.delete(infant)
     await db.commit()

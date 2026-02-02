@@ -10,12 +10,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared_libraries.database import get_db
-from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from database.orm_models.models import Camera, CameraStatus
+from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
@@ -24,8 +24,10 @@ router = APIRouter()
 # Request/Response Models
 # =============================================================================
 
+
 class CameraResponse(BaseModel):
     """Response model for camera data."""
+
     id: UUID
     camera_id: str
     name: str
@@ -43,12 +45,14 @@ class CameraResponse(BaseModel):
 
 class CameraList(BaseModel):
     """List of cameras."""
+
     items: list[CameraResponse]
     total: int
 
 
 class CameraCreate(BaseModel):
     """Request model for creating a camera."""
+
     camera_id: str = Field(..., min_length=1, max_length=50)
     name: str = Field(..., min_length=1, max_length=100)
     floor: str = Field(..., min_length=1, max_length=20)
@@ -60,6 +64,7 @@ class CameraCreate(BaseModel):
 
 class CameraUpdate(BaseModel):
     """Request model for updating a camera."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     zone: Optional[str] = Field(None, max_length=50)
     gate_id: Optional[str] = None
@@ -72,6 +77,7 @@ class CameraUpdate(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/", response_model=CameraList)
 async def list_cameras(
     floor: Optional[str] = None,
@@ -82,20 +88,20 @@ async def list_cameras(
 ) -> CameraList:
     """List all cameras with optional filtering."""
     query = select(Camera).order_by(Camera.floor, Camera.name)
-    
+
     if floor:
         query = query.where(Camera.floor == floor)
     if status:
         query = query.where(Camera.status == status)
     if gate_id:
         query = query.where(Camera.gate_id == gate_id)
-    
+
     result = await db.execute(query)
     cameras = result.scalars().all()
-    
+
     count_result = await db.execute(select(func.count(Camera.id)))
     total = count_result.scalar() or 0
-    
+
     items = [
         CameraResponse(
             id=c.id,
@@ -111,7 +117,7 @@ async def list_cameras(
         )
         for c in cameras
     ]
-    
+
     return CameraList(items=items, total=total)
 
 
@@ -124,13 +130,13 @@ async def get_camera(
     """Get a specific camera by camera_id."""
     result = await db.execute(select(Camera).where(Camera.camera_id == camera_id))
     camera = result.scalar_one_or_none()
-    
+
     if not camera:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Camera {camera_id} not found",
         )
-    
+
     return CameraResponse(
         id=camera.id,
         camera_id=camera.camera_id,
@@ -152,13 +158,15 @@ async def create_camera(
     current_user: CurrentUser = Depends(require_admin),
 ) -> CameraResponse:
     """Create a new camera."""
-    existing = await db.execute(select(Camera).where(Camera.camera_id == camera_data.camera_id))
+    existing = await db.execute(
+        select(Camera).where(Camera.camera_id == camera_data.camera_id)
+    )
     if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Camera with ID {camera_data.camera_id} already exists",
         )
-    
+
     camera = Camera(
         camera_id=camera_data.camera_id,
         name=camera_data.name,
@@ -170,7 +178,7 @@ async def create_camera(
     )
     db.add(camera)
     await db.flush()
-    
+
     return CameraResponse(
         id=camera.id,
         camera_id=camera.camera_id,
@@ -195,13 +203,13 @@ async def update_camera(
     """Update a camera."""
     result = await db.execute(select(Camera).where(Camera.camera_id == camera_id))
     camera = result.scalar_one_or_none()
-    
+
     if not camera:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Camera {camera_id} not found",
         )
-    
+
     if camera_data.name is not None:
         camera.name = camera_data.name
     if camera_data.zone is not None:
@@ -214,9 +222,9 @@ async def update_camera(
         camera.thumbnail_url = camera_data.thumbnail_url
     if camera_data.status is not None:
         camera.status = CameraStatus(camera_data.status)
-    
+
     await db.flush()
-    
+
     return CameraResponse(
         id=camera.id,
         camera_id=camera.camera_id,
@@ -240,15 +248,15 @@ async def delete_camera(
     """Delete a camera."""
     result = await db.execute(select(Camera).where(Camera.camera_id == camera_id))
     camera = result.scalar_one_or_none()
-    
+
     if not camera:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Camera {camera_id} not found",
         )
-    
+
     await db.delete(camera)
-    
+
     return {"status": "deleted", "camera_id": camera_id}
 
 
@@ -260,23 +268,24 @@ async def get_camera_snapshot(
 ) -> dict:
     """
     Get the snapshot URL for a camera.
-    
+
     In a full implementation, this would either return a cached thumbnail
     or proxy to the camera's RTSP stream to capture a frame.
     """
     result = await db.execute(select(Camera).where(Camera.camera_id == camera_id))
     camera = result.scalar_one_or_none()
-    
+
     if not camera:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Camera {camera_id} not found",
         )
-    
+
     # Return thumbnail URL or a placeholder
     return {
         "camera_id": camera_id,
-        "snapshot_url": camera.thumbnail_url or f"/api/v1/cameras/{camera_id}/snapshot.jpg",
+        "snapshot_url": camera.thumbnail_url
+        or f"/api/v1/cameras/{camera_id}/snapshot.jpg",
         "status": camera.status.value,
         "timestamp": datetime.utcnow().isoformat(),
     }
@@ -290,24 +299,24 @@ async def get_camera_stream(
 ) -> dict:
     """
     Get the stream URL for a camera.
-    
+
     Returns the RTSP or HLS stream URL for the camera.
     """
     result = await db.execute(select(Camera).where(Camera.camera_id == camera_id))
     camera = result.scalar_one_or_none()
-    
+
     if not camera:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Camera {camera_id} not found",
         )
-    
+
     if camera.status != CameraStatus.ONLINE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Camera {camera_id} is currently {camera.status.value}",
         )
-    
+
     return {
         "camera_id": camera_id,
         "stream_url": camera.stream_url,

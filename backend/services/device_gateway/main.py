@@ -116,7 +116,9 @@ class DeviceGateway:
                 logger.warning("unknown_topic", topic=topic)
 
         except json.JSONDecodeError as e:
-            logger.error("invalid_json", error=str(e), payload=msg.payload.decode()[:100])
+            logger.error(
+                "invalid_json", error=str(e), payload=msg.payload.decode()[:100]
+            )
         except Exception as e:
             logger.error("message_processing_error", error=str(e))
 
@@ -207,13 +209,15 @@ class DeviceGateway:
 
             if not result:
                 # No active pairing - trigger alert
-                self._publish_alert({
-                    "type": "unauthorized_gate_approach",
-                    "severity": "critical",
-                    "tag_id": tag_id,
-                    "reader_id": payload.get("reader_id"),
-                    "message": f"Infant tag {tag_id} approaching gate without authorized pairing",
-                })
+                self._publish_alert(
+                    {
+                        "type": "unauthorized_gate_approach",
+                        "severity": "critical",
+                        "tag_id": tag_id,
+                        "reader_id": payload.get("reader_id"),
+                        "message": f"Infant tag {tag_id} approaching gate without authorized pairing",
+                    }
+                )
                 logger.warning("unauthorized_gate_approach", tag_id=tag_id)
 
         except Exception as e:

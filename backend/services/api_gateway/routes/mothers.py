@@ -8,20 +8,21 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
-from shared_libraries.database import get_db
+from database.orm_models.models import Mother, Pairing, TagStatus
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
-from database.orm_models.models import Mother, TagStatus, Pairing
+from shared_libraries.database import get_db
 
 router = APIRouter()
 
 
 class MotherCreate(BaseModel):
     """Request model for creating a mother record."""
+
     tag_id: str
     name: str  # Combined name for simplicity
     room: Optional[str] = None
@@ -30,6 +31,7 @@ class MotherCreate(BaseModel):
 
 class MotherResponse(BaseModel):
     """Response model for mother data."""
+
     id: UUID
     tag_id: str
     name: str
@@ -44,6 +46,7 @@ class MotherResponse(BaseModel):
 
 class MotherList(BaseModel):
     """Paginated list of mothers."""
+
     items: list[MotherResponse]
     total: int
 
@@ -59,10 +62,10 @@ async def list_mothers(
     print(f"DEBUG SQL: {query}")
     result = await db.execute(query)
     mothers = result.unique().scalars().all()
-    
+
     count_result = await db.execute(select(func.count(Mother.id)))
     total = count_result.scalar() or 0
-    
+
     items = [
         MotherResponse(
             id=m.id,
@@ -75,7 +78,7 @@ async def list_mothers(
         )
         for m in mothers
     ]
-    
+
     return MotherList(items=items, total=total)
 
 
@@ -90,10 +93,10 @@ async def create_mother(
     name_parts = mother_data.name.split(" ", 1)
     first_name = name_parts[0]
     last_name = name_parts[1] if len(name_parts) > 1 else ""
-    
+
     # Generate MRN
     mrn = f"MRN-{mother_data.tag_id}"
-    
+
     mother = Mother(
         tag_id=mother_data.tag_id,
         medical_record_number=mrn,
@@ -104,15 +107,12 @@ async def create_mother(
         room=mother_data.room,
         tag_status=TagStatus.ACTIVE,
     )
-    
+
     try:
         db.add(mother)
         await db.flush()
         # Replace db.refresh with explicit select to avoid MissingGreenlet
-        result = await db.execute(
-            select(Mother)
-            .where(Mother.id == mother.id)
-        )
+        result = await db.execute(select(Mother).where(Mother.id == mother.id))
         mother = result.unique().scalar_one()
     except IntegrityError:
         # Check for duplicate key violation
@@ -121,7 +121,7 @@ async def create_mother(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Mother with tag ID {mother_data.tag_id} or MRN already exists",
         )
-    
+
     return MotherResponse(
         id=mother.id,
         tag_id=mother.tag_id,
@@ -140,18 +140,15 @@ async def get_mother(
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> MotherResponse:
     """Get mother by ID."""
-    result = await db.execute(
-        select(Mother)
-        .where(Mother.id == mother_id)
-    )
+    result = await db.execute(select(Mother).where(Mother.id == mother_id))
     mother = result.unique().scalar_one_or_none()
-    
+
     if not mother:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mother {mother_id} not found",
         )
-    
+
     return MotherResponse(
         id=mother.id,
         tag_id=mother.tag_id,
@@ -172,17 +169,17 @@ async def delete_mother(
     """Delete a mother and all associated pairings."""
     result = await db.execute(select(Mother).where(Mother.id == mother_id))
     mother = result.unique().scalar_one_or_none()
-    
+
     if not mother:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mother {mother_id} not found",
         )
-    
+
     # Delete associated pairings via ORM (avoids StaleDataError)
     for pairing in list(mother.pairings):
         await db.delete(pairing)
-    
+
     # Delete mother
     await db.delete(mother)
     await db.commit()
