@@ -271,6 +271,26 @@ services:
     networks:
       - infant-stack-network
 
+  # Home Dashboard - Centralized Login and Dashboard Hub
+  home-dashboard:
+    image: node:20-alpine
+    container_name: infant-stack-home-dashboard
+    working_dir: /app
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./dashboards:/app
+    command: sh -c "cd home-dashboard && npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+      - VITE_KEYCLOAK_URL=http://localhost:8080/realms/infant-stack
+      - VITE_KEYCLOAK_CLIENT_ID=infant-stack-spa
+    depends_on:
+      - api-gateway
+      - keycloak
+    networks:
+      - infant-stack-network
+
 # ==========================================================================
 # Volumes
 # ==========================================================================

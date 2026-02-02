@@ -36,6 +36,30 @@
         "clientRole": false
       },
       {
+        "name": "nurse",
+        "description": "Nurse role with access to infant and mother management",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "security",
+        "description": "Security role with access to tracking and alerts",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "doctor",
+        "description": "Doctor role with access to patient medical records",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "lab",
+        "description": "Lab technician role with access to lab results",
+        "composite": false,
+        "clientRole": false
+      },
+      {
         "name": "default-roles-infant-stack",
         "description": "Default roles for new users",
         "composite": true,
@@ -61,7 +85,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["admin", "user"]
+      "realmRoles": ["admin", "user", "nurse", "security"]
     },
     {
       "username": "user@example.com",
@@ -77,7 +101,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["user"]
+      "realmRoles": ["user", "nurse"]
     }
   ],
   "clients": [
@@ -100,16 +124,18 @@
       "redirectUris": [
         "http://localhost:3000/*",
         "http://localhost:3001/*",
-        "http://localhost:3002/*"
+        "http://localhost:3002/*",
+        "http://localhost:3003/*"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "http://localhost:3001",
-        "http://localhost:3002"
+        "http://localhost:3002",
+        "http://localhost:3003"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*"
+        "post.logout.redirect.uris": "http://localhost:3000/*++http://localhost:3003/*"
       },
       "defaultClientScopes": [
         "web-origins",

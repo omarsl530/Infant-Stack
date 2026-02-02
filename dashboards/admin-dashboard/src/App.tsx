@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   ArrowRightOnRectangleIcon,
   MapIcon,
+  HomeIcon,
 } from "@heroicons/react/24/outline";
 import UserManagement from "./components/UserManagement";
 // PermissionMatrix removed
@@ -103,6 +104,13 @@ function DashboardLayout() {
               </p>
             </div>
           </div>
+          <button
+            onClick={() => (window.location.href = "http://localhost:3003")}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 mb-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
+          >
+            <HomeIcon className="w-3 h-3" />
+            Back to Hub
+          </button>
           <button
             onClick={() => auth.signoutRedirect()}
             className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"

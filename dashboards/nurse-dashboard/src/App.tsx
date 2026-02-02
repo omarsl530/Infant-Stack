@@ -9,6 +9,7 @@ import {
   HeartIcon,
   ArrowPathIcon,
   ArrowRightOnRectangleIcon,
+  HomeIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthContext";
 import * as api from "./api";
@@ -569,6 +570,14 @@ export default function App() {
                     {alerts.length}
                   </span>
                 )}
+              </button>
+
+              <button
+                onClick={() => (window.location.href = "http://localhost:3003")}
+                className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+                title="Back to Hub"
+              >
+                <HomeIcon className="w-6 h-6" />
               </button>
 
               <button

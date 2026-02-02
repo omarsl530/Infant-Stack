@@ -67,8 +67,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_MIN_VALIDITY_SECONDS = 70;
 const TOKEN_REFRESH_INTERVAL_MS = 30000; // Check every 30 seconds
 
-// Flag to prevent double initialization in React StrictMode
-let keycloakInitialized = false;
+// Singleton promise to handle strict mode double-initialization
+let keycloakInitPromise: Promise<boolean> | null = null;
 
 // =============================================================================
 // Provider Component
@@ -138,75 +138,105 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Initialize Keycloak and handle the OIDC flow.
    */
   useEffect(() => {
-    // Prevent double initialization in React StrictMode
-    if (keycloakInitialized) {
-      console.log("[Auth] Keycloak already initialized, skipping...");
-      // If already initialized, just update state
-      updateAuthState();
-      setIsLoading(false);
-      return;
+    // Only initialize once (handling React StrictMode)
+    if (!keycloakInitPromise) {
+       // Set up token refresh handler
+       keycloak.onTokenExpired = async () => {
+        console.log("[Auth] Token expired, refreshing...");
+        try {
+          const refreshed = await keycloak.updateToken(
+            TOKEN_MIN_VALIDITY_SECONDS,
+          );
+          if (refreshed) {
+            console.log("[Auth] Token refreshed successfully");
+            // Note: We can't call updateAuthState here directly because it's not in scope
+            // But since this runs only once, we rely on the component re-rendering or manual event dispatch?
+            // Actually, listeners should probably dispatch events or update a global store if outside component?
+            // BUT: keycloak instance is global. The listeners are callbacks.
+            // When callback fires, we want to update React state.
+            // Problem: If we define listeners inside `if (!keycloakInitPromise)`, they close over the *initial* render scope?
+            // No, `keycloak` is global. But `updateAuthState` is from the *current* render?
+            // Wait. Any variables used inside onTokenExpired must be valid.
+            // If I define it here, I can't call `updateAuthState` from the component scope easily if this block runs only once.
+            
+            // Correction: The LISTENERS need to be bound to the latest state updater?
+            // Or use a ref?
+            // However, `keycloak.onTokenExpired` is a single property. If I overwrite it on every render, it's fine.
+            // So listeners SHOULD be set outside the `if (!keycloakInitPromise)` block?
+            // No, init() starts the process. 
+            // If I set listeners *after* init finished, I might miss events?
+            // Ideally listeners are set before init.
+            
+            // Solution: Use a global EventTarget or just assume the component mounts once in prod.
+            // In StrictMode, it mounts, unmounts, mounts.
+            // The first `onTokenExpired` closure will try to call `updateAuthState` from the *first* render (which is unmounted).
+            // Calling setState on unmounted component -> warning (or ignored in React 18).
+            // We need the listeners to call the *current* component's updater.
+            
+            // Better approach:
+            // Define listeners in a separate useEffect that updates on every render?
+            // `keycloak.onAuthSuccess = () => updateAuthState();`
+            // Yes.
+          }
+        } catch (err) {
+          console.error("[Auth] Failed to refresh token:", err);
+          // modifying state logic here is tricky if unmounted
+        }
+      };
+      
+      keycloakInitPromise = keycloak.init({
+        onLoad: "check-sso",
+        pkceMethod: "S256",
+        checkLoginIframe: false, // Disable for better UX
+        silentCheckSsoRedirectUri:
+          window.location.origin + "/silent-check-sso.html",
+      });
     }
 
-    const initKeycloak = async () => {
-      try {
-        keycloakInitialized = true; // Mark as initialized before calling init
+    // Attach listeners that link to THIS component instance
+    // This runs on every mount (and update of updateAuthState)
+    keycloak.onTokenExpired = async () => {
+       try {
+          await keycloak.updateToken(TOKEN_MIN_VALIDITY_SECONDS);
+          updateAuthState();
+       } catch (error) {
+           setError("Session expired");
+           setIsAuthenticated(false);
+       }
+    };
+    keycloak.onAuthSuccess = () => {
+        console.log("[Auth] Authentication successful");
+        updateAuthState();
+    };
+    keycloak.onAuthLogout = () => {
+        console.log("[Auth] User logged out");
+        setIsAuthenticated(false);
+        setUser(null);
+        setRoles([]);
+    };
 
-        // Initialize with check-sso to silently check for existing session
-        const authenticated = await keycloak.init({
-          onLoad: "check-sso",
-          pkceMethod: "S256",
-          checkLoginIframe: false, // Disable for better UX
-          silentCheckSsoRedirectUri:
-            window.location.origin + "/silent-check-sso.html",
-        });
-
-        console.log(
-          "[Auth] Keycloak initialized, authenticated:",
-          authenticated,
-        );
+    // Wait for the initialization promise
+    keycloakInitPromise
+      .then((authenticated) => {
+        console.log("[Auth] Keycloak initialized, authenticated:", authenticated);
         updateAuthState();
         setIsLoading(false);
-
-        // Set up token refresh handler
-        keycloak.onTokenExpired = async () => {
-          console.log("[Auth] Token expired, refreshing...");
-          try {
-            const refreshed = await keycloak.updateToken(
-              TOKEN_MIN_VALIDITY_SECONDS,
-            );
-            if (refreshed) {
-              console.log("[Auth] Token refreshed successfully");
-              updateAuthState();
-            }
-          } catch (err) {
-            console.error("[Auth] Failed to refresh token:", err);
-            setError("Session expired. Please login again.");
-            setIsAuthenticated(false);
-            setUser(null);
-            setRoles([]);
-          }
-        };
-
-        // Set up auth state change handlers
-        keycloak.onAuthSuccess = () => {
-          console.log("[Auth] Authentication successful");
-          updateAuthState();
-        };
-
-        keycloak.onAuthLogout = () => {
-          console.log("[Auth] User logged out");
-          setIsAuthenticated(false);
-          setUser(null);
-          setRoles([]);
-        };
-      } catch (err) {
+      })
+      .catch((err) => {
         console.error("[Auth] Keycloak initialization failed:", err);
         setError("Failed to initialize authentication");
         setIsLoading(false);
-      }
+      });
+      
+    // Cleanup? We don't want to nullify initPromise because keycloak instance is persistent.
+    // If we unmount, we just detach listeners? Keycloak-js is singular.
+    return () => {
+        // We can nullify callbacks to avoid memory leaks or calling dead components
+        keycloak.onTokenExpired = undefined;
+        keycloak.onAuthSuccess = undefined;
+        keycloak.onAuthLogout = undefined;
     };
 
-    initKeycloak();
   }, [updateAuthState]);
 
   /**
@@ -252,7 +282,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       await keycloak.logout({
-        redirectUri: window.location.origin,
+        redirectUri: "http://localhost:3003",
       });
     } catch (err) {
       console.error("[Auth] Logout failed:", err);

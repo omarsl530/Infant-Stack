@@ -10,6 +10,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   ChartBarIcon,
+  HomeIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -357,6 +358,13 @@ export default function App() {
               </div>
 
               {/* Settings */}
+              <button
+                onClick={() => (window.location.href = "http://localhost:3003")}
+                className="p-2 rounded-lg hover:bg-slate-700/50"
+                title="Back to Hub"
+              >
+                <HomeIcon className="w-5 h-5" />
+              </button>
               <button className="p-2 rounded-lg hover:bg-slate-700/50">
                 <Cog6ToothIcon className="w-5 h-5" />
               </button>

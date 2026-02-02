@@ -2,12 +2,14 @@
  * Protected Route Component
  *
  * Wrapper for routes that require authentication.
- * Optionally checks for specific roles before allowing access.
+ * Redirects unauthenticated users to the centralized home-dashboard for login.
  */
 
-import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+
+const HOME_DASHBOARD_URL = "http://localhost:3003";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -22,24 +24,26 @@ export default function ProtectedRoute({
   requiredRoles,
   requireAll = false,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, roles } = useAuth();
+  const { isAuthenticated, isLoading, roles, login } = useAuth();
   const location = useLocation();
 
-  // Show loading state while auth is initializing
-  if (isLoading) {
+  // Redirect to Keycloak SSO if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      login();
+    }
+  }, [isLoading, isAuthenticated, login]);
+
+  // Show loading state while auth is initializing or redirecting
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading...</p>
+          <p className="text-gray-300">Redirecting to login...</p>
         </div>
       </div>
     );
-  }
-
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Check role requirements if specified
@@ -62,12 +66,12 @@ export default function ProtectedRoute({
             <p className="text-gray-500 text-sm mb-4">
               Required roles: {requiredRoles.join(", ")}
             </p>
-            <button
-              onClick={() => window.history.back()}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+            <a
+              href={HOME_DASHBOARD_URL}
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
             >
-              Go Back
-            </button>
+              Go to Dashboard Hub
+            </a>
           </div>
         </div>
       );
@@ -77,3 +81,4 @@ export default function ProtectedRoute({
   // Render the protected content
   return <>{children}</>;
 }
+

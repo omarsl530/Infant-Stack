@@ -2,6 +2,7 @@
  * Main Application Entry Point
  *
  * Sets up React with BrowserRouter and AuthProvider for the dashboard.
+ * Login is handled by the centralized home-dashboard at port 3003.
  */
 
 import React from "react";
@@ -10,7 +11,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 import App from "./App";
-import LoginPage from "./LoginPage";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -18,11 +18,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          {/* All routes are protected - login is at home-dashboard */}
           <Route
             path="/*"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRoles={["nurse", "admin"]}>
                 <App />
               </ProtectedRoute>
             }

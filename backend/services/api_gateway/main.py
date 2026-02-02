@@ -76,10 +76,17 @@ app = FastAPI(
 # Instrument Prometheus
 Instrumentator().instrument(app).expose(app)
 
-# CORS Middleware
+# CORS Middleware - Configure allowed origins
+allowed_origins = [
+    "http://localhost:3000",  # nurse-dashboard
+    "http://localhost:3001",  # security-dashboard
+    "http://localhost:3002",  # admin-dashboard
+    "http://localhost:3003",  # home-dashboard
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Production should be more restrictive
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
