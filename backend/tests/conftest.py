@@ -30,7 +30,13 @@ def event_loop():
 from sqlalchemy import select
 
 from database.orm_models.models import User
-from shared_libraries.database import async_session_factory
+from shared_libraries.database import async_session_factory, init_db
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def setup_database():
+    """Initialize database schema once per test session."""
+    await init_db()
 
 
 @pytest.fixture
