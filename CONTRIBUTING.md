@@ -32,8 +32,8 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/infant-stack.git
-cd infant-stack
+git clone https://github.com/omarsl530/Infant-Stack.git
+cd Infant-Stack
 
 # Create a feature branch
 git checkout -b feature/your-feature-name
@@ -123,10 +123,11 @@ docs(readme): update quickstart instructions
 ### Python (Backend)
 
 - Follow [PEP 8](https://peps.python.org/pep-0008/)
-- Use [Black](https://github.com/psf/black) for formatting (line length: 88)
+- Use [Black](https://github.com/psf/black) for formatting
 - Use [isort](https://github.com/PyCQA/isort) for import sorting
-- Use type hints for function signatures
-- Docstrings in [Google style](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)
+- Use [Ruff](https://github.com/astral-sh/ruff) for linting
+- Use [Mypy](https://github.com/python/mypy) for type checking
+- Models MUST use **Pydantic V2** syntax (`model_config`, `@field_validator`).
 
 ```python
 def process_tag_event(tag_id: str, event_type: str) -> bool:
@@ -191,7 +192,7 @@ npm run test:a11y
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/YOUR_ORG/infant-stack/discussions)
-- Check existing [Issues](https://github.com/YOUR_ORG/infant-stack/issues)
+- Open a [GitHub Discussion](https://github.com/omarsl530/Infant-Stack/discussions)
+- Check existing [Issues](https://github.com/omarsl530/Infant-Stack/issues)
 
 Thank you for contributing! 🎉

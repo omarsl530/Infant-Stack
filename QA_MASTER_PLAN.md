@@ -1,17 +1,18 @@
 # QA Master Plan: Infant-Stack System
 
-**Status:** Draft / Initial Assessment
-**Date:** February 1, 2026
-**Scope:** Admin Dashboard, API Gateway, Authentication, Database, Integrations
+**Status:** Implemented / Active
+**Date:** February 2, 2026
+**Scope:** Admin Dashboard, API Gateway, Authentication, Database, Integrations, CI/CD Pipeline
 
 ## 1. Executive Summary
 
 The Infant-Stack system currently has **10-15% test coverage**, primarily limited to basic API health checks. Critical business flows (User Management, Dashboard Stats, JIT Provisioning) lack automated regression tests, leading to the recent production outages (backend crashes, 500 errors).
 
 **Top 3 Recommended Actions:**
-1.  **Implement Backend Integration Tests:** Immediate priority to cover User Creation, Role Assignment, and Statistics Aggregation to prevent regression of the recent P0 fixes.
-2.  **Establish Frontend Test Infrastructure:** Install Vitest and React Testing Library. The Admin Dashboard currently has **zero** automated tests.
-3.  **Add End-to-End (E2E) Sanity Check:** Implement a single Playwright login flow test to verify that the entire stack (Frontend -> Keycloak -> API -> DB) is connected.
+1.  **Backend Integration Tests:** ✅ **Implemented.** Covered User Creation, Role Assignment, and Statistics Aggregation.
+2.  **Frontend Test Infrastructure:** ✅ **Implemented.** Vitest and React Testing Library installed and configured.
+3.  **End-to-End (E2E) Sanity Check:** ✅ **Implemented.** Playwright login flows verified.
+4.  **CI/CD Pipeline Stabilization:** ✅ **Implemented.** All linting, testing, and security jobs are passing.
 
 ---
 
@@ -21,10 +22,10 @@ To fully execute this plan, the following access is required (Current status in 
 
 *   **Codebase Access:** Full read/write access to `backend/` and `dashboards/`. [x] Granted
 *   **Database Access:** Direct SQL access to PostgreSQL `biobaby_db`. [x] Granted (via docker exec)
-*   **Keycloak Admin:** Access to Keycloak Admin Console to inspect realms/clients. [-] Partial (managed via code/docker)
-*   **CI/CD Configuration:** Access to GitHub Actions or GitLab CI settings. [ ] Missing (None found)
+*   **Keycloak Admin:** Access to Keycloak Admin Console. [x] Granted
+*   **CI/CD Configuration:** GitHub Actions workflow (`ci.yml`) analyzed and corrected. [x] Verified
 *   **Environment Config:** `.env` files for local and staging. [x] Granted
-*   **Logs:** Access to centralized logging (ELK/Splunk) or raw Docker logs. [x] Granted (Docker logs)
+*   **Logs:** Access to Docker logs and CI/CD run logs. [x] Granted (Docker logs)
 
 ---
 
@@ -97,10 +98,12 @@ Based on recent audits and debugging:
 
 | ID | Severity | Component | Description | Remediation | Verification |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **DEF-001** | **P0** | Backend | **API Gateway Crash on Startup** due to missing import in `stats.py`. | **Fixed** (Step 843). Added correct import. | Verify `docker logs api-gateway` shows "started". |
-| **DEF-002** | **P0** | Auth | **JIT Provisioning Crash (IntegrityError)**. User creation failed due to null password. | **Fixed** (Step 782). Added dummy password & rollback. | Login as new OIDC user, verify DB entry. |
-| **DEF-003** | **P1** | User Mgmt | **422 Error on User Create**. Frontend sent extra fields/short password. | **Fixed** (Step 749/User). Logic aligned. | Create user with password "123" -> expect error. |
-| **DEF-004** | **P2** | Frontend | **Zero Test Coverage**. No test scripts in `package.json`. | Install Vitest. | Run `npm test`. |
+| **DEF-001** | **P0** | Backend | **API Gateway Crash on Startup** due to missing import in `stats.py`. | **Fixed**. Added correct import. | Verified `docker logs` shows "started". |
+| **DEF-002** | **P0** | Auth | **JIT Provisioning Crash (IntegrityError)**. User creation failed due to null password. | **Fixed**. Added dummy password & rollback. | Login as new OIDC user, verified DB entry. |
+| **DEF-003** | **P1** | User Mgmt | **422 Error on User Create**. Frontend sent extra fields/short password. | **Fixed**. Logic aligned with Pydantic V2. | Create user with password "123" -> returns 422. |
+| **DEF-004** | **P2** | Frontend | **Zero Test Coverage**. No test scripts in `package.json`. | **Fixed**. Installed Vitest and configured CI. | Run `npm test`. |
+| **DEF-005** | **P0** | CI/CD | **Backend Async Loop Conflict** in tests. | **Fixed**. Set session scope in `pyproject.toml`. | Stable CI test runs. |
+| **DEF-006** | **P0** | Docker | **Missing nginx.conf / Obsolete Workspaces**. | **Fixed**. Recreated config and cleaned Dockerfile. | Docker build passes. |
 
 ---
 

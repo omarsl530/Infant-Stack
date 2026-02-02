@@ -14,7 +14,7 @@ This guide explains how to run the Infant-Stack hospital infant tracking system 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/omarsl530/Infant-Stack.git
 cd Infant-Stack
 ```
 
@@ -65,6 +65,24 @@ Test the API:
 
 ```bash
 curl http://localhost:8000/health
+```
+
+## Running Tests
+
+### Backend Tests
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+pytest tests/
+```
+
+### Frontend Tests
+```bash
+cd dashboards/admin-dashboard
+npm install
+npm test
 ```
 
 ## Common Commands
