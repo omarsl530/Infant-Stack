@@ -57,8 +57,22 @@ async def db_admin_user():
             )
             admin_role = role_result.scalars().first()
             if not admin_role:
-                # Should not happen in seeded DB, but for robustness:
-                raise RuntimeError("Role 'admin' not found.")
+                # Seed required roles
+                admin_role = Role(
+                    name="admin",
+                    description="Full system access",
+                    permissions=["*"],
+                    is_system=True,
+                )
+                nurse_role = Role(
+                    name="nurse",
+                    description="Medical staff access",
+                    permissions=["infants:read", "infants:write", "mothers:read"],
+                    is_system=True,
+                )
+                session.add(admin_role)
+                session.add(nurse_role)
+                await session.flush()
 
             # Create the admin user if missing (Auto-seeding for tests)
             user = User(
