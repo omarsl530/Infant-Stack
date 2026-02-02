@@ -1,6 +1,6 @@
 # 🏥 Infant-Stack
 
-[![CI](https://github.com/YOUR_ORG/infant-stack/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_ORG/infant-stack/actions/workflows/ci.yml)
+[![CI](https://github.com/omarsl530/Infant-Stack/actions/workflows/ci.yml/badge.svg)](https://github.com/omarsl530/Infant-Stack/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
@@ -54,9 +54,9 @@ flowchart TB
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Python 3.11, FastAPI, SQLAlchemy |
-| Frontend | React 18, TypeScript, Vite, TailwindCSS |
-| Primary DB | PostgreSQL 15 |
+| Frontend | React 18, TypeScript, Vite, Vanilla CSS |
+| Primary DB | PostgreSQL 16 (Async) |
+| Validation | Pydantic V2 |
 | Time-series DB | MongoDB 6 |
 | Message Broker | Eclipse Mosquitto (MQTT) |
 | Cache | Redis 7 |
@@ -77,8 +77,8 @@ flowchart TB
 
 ```bash
 # Clone the repository
-git clone https://github.com/omarsl530/infant-stack.git
-cd infant-stack
+git clone https://github.com/omarsl530/Infant-Stack.git
+cd Infant-Stack
 
 # Start all services
 docker-compose up -d
@@ -116,11 +116,9 @@ infant-stack/
 │   │   ├── migrations/          # SQL migrations
 │   │   └── orm-models/          # SQLAlchemy models
 │   └── shared-libraries/        # Common utilities
-├── dashboards/
 │   ├── nurse-dashboard/         # Real-time monitoring
 │   ├── security-dashboard/      # Alerts & gate control
-│   ├── admin-dashboard/         # System configuration
-│   └── shared-components/       # Reusable UI components
+│   └── admin-dashboard/         # System configuration
 ├── firmware/                    # Device firmware
 ├── hardware/                    # Schematics & CAD
 ├── simulations/                 # Device simulators
