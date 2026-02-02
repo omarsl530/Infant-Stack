@@ -16,27 +16,24 @@ from services.api_gateway.main import app
 from shared_libraries.auth import CurrentUser, get_current_user
 
 
-# event_loop handled by pytest-asyncio (auto mode), but we need session scope for global engine compatibility
-@pytest.fixture(scope="session")
-def event_loop():
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+# event_loop scope is now handled by pyproject.toml (pytest-asyncio 0.23+)
 
-
-from sqlalchemy import select
-
-from database.orm_models.models import User
-from shared_libraries.database import async_session_factory, init_db
+from shared_libraries.database import async_engine, async_session_factory, init_db
 
 
 @pytest.fixture(scope="session", autouse=True)
 async def setup_database():
     """Initialize database schema once per test session."""
+    # Re-dispose just in case it was created during import
+    await async_engine.dispose()
     await init_db()
+    yield
+    await async_engine.dispose()
+
+
+from sqlalchemy import select
+
+from database.orm_models.models import User
 
 
 @pytest.fixture
