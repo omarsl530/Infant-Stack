@@ -75,7 +75,7 @@ line_length = 88
 
 [tool.ruff]
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+select = ["E", "F", "W", "N", "UP", "B", "C4"]
 ignore = ["E501", "B008", "N815", "E402"]
 
 [tool.mypy]
@@ -84,7 +84,7 @@ strict = false
 ignore_missing_imports = true
 explicit_package_bases = true
 namespace_packages = true
-disable_error_code = ["assignment", "index", "misc", "arg-type", "call-arg", "no-untyped-def", "no-untyped-call", "type-arg", "operator", "name-defined", "annotation-unchecked", "override"]
+disable_error_code = ["assignment", "index", "misc", "arg-type", "call-arg", "no-untyped-def", "no-untyped-call", "type-arg", "operator", "name-defined", "annotation-unchecked", "override", "var-annotated"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

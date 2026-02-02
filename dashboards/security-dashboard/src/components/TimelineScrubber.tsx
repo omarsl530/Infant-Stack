@@ -30,8 +30,6 @@ function formatTime(date: Date): string {
   });
 }
 
-
-
 // Helper to format Date for datetime-local input
 const toLocalISO = (date: Date) => {
   const pad = (n: number) => n.toString().padStart(2, "0");

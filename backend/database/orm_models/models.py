@@ -9,12 +9,14 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import (
     DateTime,
+)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (
     ForeignKey,
     Index,
     String,
     Text,
 )
-from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
