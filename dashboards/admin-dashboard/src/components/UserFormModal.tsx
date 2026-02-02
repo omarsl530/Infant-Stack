@@ -97,8 +97,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">First Name</label>
+                    <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">First Name</label>
                     <input
+                      id="first_name"
                       type="text"
                       required
                       className="form-input mt-1 block w-full"
@@ -107,8 +108,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Last Name</label>
+                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Last Name</label>
                     <input
+                      id="last_name"
                       type="text"
                       required
                       className="form-input mt-1 block w-full"
@@ -119,8 +121,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Email</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Email</label>
                   <input
+                    id="email"
                     type="email"
                     required
                     className="form-input mt-1 block w-full"
@@ -130,8 +133,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Role</label>
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Role</label>
                   <select
+                    id="role"
                     className="form-select mt-1 block w-full"
                     value={formData.role}
                     onChange={e => setFormData({ ...formData, role: e.target.value as any })}
@@ -155,8 +159,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                 {!user && (
                     <>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Password</label>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Password</label>
                         <input
+                        id="password"
                         type="password"
                         required={!user}
                         className="form-input mt-1 block w-full"
@@ -165,8 +170,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Confirm Password</label>
                         <input
+                        id="confirmPassword"
                         type="password"
                         required={!user}
                         className="form-input mt-1 block w-full"

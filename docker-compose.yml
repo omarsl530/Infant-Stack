@@ -60,6 +60,16 @@ services:
     networks:
       - infant-stack-network
 
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: infant-stack-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./devops/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - infant-stack-network
+
   # MQTT Broker for Real-Time Tag Communication
   mqtt:
     image: eclipse-mosquitto:2

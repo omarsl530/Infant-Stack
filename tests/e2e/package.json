@@ -1,0 +1,16 @@
+{
+  "name": "infant-stack-e2e",
+  "version": "1.0.0",
+  "description": "End-to-end tests for Infant-Stack",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "codegen": "playwright codegen"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.1",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

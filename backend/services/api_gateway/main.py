@@ -9,6 +9,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.responses import JSONResponse
 
 import sys
@@ -57,6 +58,9 @@ app = FastAPI(
     docs_url=f"{settings.api_prefix}/docs",
     openapi_url=f"{settings.api_prefix}/openapi.json",
 )
+
+# Instrument Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # CORS Middleware
 app.add_middleware(

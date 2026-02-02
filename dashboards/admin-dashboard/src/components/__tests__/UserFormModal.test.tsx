@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import UserFormModal from '../UserFormModal';
-import { User, UserCreate } from '../../types';
+import { User } from '../../types';
 
 describe('UserFormModal', () => {
   const mockOnClose = vi.fn();
@@ -10,7 +10,6 @@ describe('UserFormModal', () => {
   it('validates short password', async () => {
     render(
       <UserFormModal 
-        isOpen={true} 
         onClose={mockOnClose} 
         onSubmit={mockOnSubmit} 
       />
@@ -22,11 +21,11 @@ describe('UserFormModal', () => {
     fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
     
     // Short password
-    const passwordInput = screen.getByLabelText(/Password/i);
+    const passwordInput = screen.getByLabelText('Password');
     fireEvent.change(passwordInput, { target: { value: '123' } });
 
     // Submit
-    fireEvent.click(screen.getByText(/Create User/i));
+    fireEvent.click(screen.getByRole('button', { name: /Save/i }));
 
     // Expect validation error (HTML5 or custom)
     // Note: If using standard HTML validation, we might check checkValidity
@@ -37,7 +36,6 @@ describe('UserFormModal', () => {
   it('submits valid data', async () => {
     render(
       <UserFormModal 
-        isOpen={true} 
         onClose={mockOnClose} 
         onSubmit={mockOnSubmit} 
       />
@@ -46,12 +44,13 @@ describe('UserFormModal', () => {
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'valid@example.com' } });
     fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'Jane' } });
     fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText(/Password/i), { target: { value: 'securePass123' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'securePass123' } });
+    fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'securePass123' } });
     
     // Select role (assuming select input)
     // fireEvent.change(screen.getByLabelText(/Role/i), { target: { value: 'nurse' } });
 
-    fireEvent.click(screen.getByText(/Create User/i));
+    fireEvent.click(screen.getByRole('button', { name: /Save/i }));
 
     await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
