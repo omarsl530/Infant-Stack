@@ -1,0 +1,886 @@
+
+> admin-dashboard@0.1.0 test
+> vitest --run
+
+
+ RUN  v1.6.1 /home/omarsl530/Projects/Infant-Stack/dashboards/admin-dashboard
+
+ ✓ src/test/smoke.test.ts  (1 test) 6ms
+ ✓ src/components/__tests__/Statistics.test.tsx  (3 tests) 98ms
+ ❯ src/components/__tests__/UserFormModal.test.tsx  (2 tests | 2 failed) 133ms
+   ❯ src/components/__tests__/UserFormModal.test.tsx > UserFormModal > validates short password
+     → Found a label with the text of: /Email/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-50 overflow-y-auto"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"fixed inset-0 transition-opacity"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute inset-0 bg-gray-900/75 backdrop-blur-sm"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"hidden sm:inline-block sm:align-middle sm:h-screen"[39m
+        [36m>[39m
+          [0m​[0m
+        [36m</span>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute top-0 right-0 pt-4 pr-4"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"bg-white dark:bg-slate-800 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"sr-only"[39m
+              [36m>[39m
+                [0mClose[0m
+              [36m</span>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"h-6 w-6"[39m
+                [33mdata-slot[39m=[32m"icon"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-width[39m=[32m"1.5"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M6 18 18 6M6 6l12 12"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<form>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"px-4 pt-5 pb-4 sm:p-6 sm:pb-4"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4"[39m
+              [36m>[39m
+                [0mAdd New User[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-4"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"grid grid-cols-2 gap-4"[39m
+                [36m>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mFirst Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mLast Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mEmail[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"email"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mRole[0m
+                  [36m</label>[39m
+                  [36m<select[39m
+                    [33mclass[39m=[32m"form-select mt-1 block w-full"[39m
+                  [36m>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"viewer"[39m
+                    [36m>[39m
+                      [0mViewer[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"nurse"[39m
+                    [36m>[39m
+                      [0mNurse[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"security"[39m
+                    [36m>[39m
+                      [0mSecurity[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"admin"[39m
+                    [36m>[39m
+                      [0mAdmin[0m
+                    [36m</option>[39m
+                  [36m</select>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mPassword[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mConfirm Password[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center mt-4"[39m
+                [36m>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"[39m
+                    [33mid[39m=[32m"is_active"[39m
+                    [33mtype[39m=[32m"checkbox"[39m
+                  [36m/>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"ml-2 block text-sm text-gray-900 dark:text-slate-300"[39m
+                    [33mfor[39m=[32m"is_active"[39m
+                  [36m>[39m
+                    [0mActive Account[0m
+                  [36m</label>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-gray-50 dark:bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-slate-700"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"[39m
+                [33mtype[39m=[32m"submit"[39m
+              [36m>[39m
+                [0mSave[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mCancel[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</form>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+   ❯ src/components/__tests__/UserFormModal.test.tsx > UserFormModal > submits valid data
+     → Found a label with the text of: /Email/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-50 overflow-y-auto"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"fixed inset-0 transition-opacity"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute inset-0 bg-gray-900/75 backdrop-blur-sm"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"hidden sm:inline-block sm:align-middle sm:h-screen"[39m
+        [36m>[39m
+          [0m​[0m
+        [36m</span>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute top-0 right-0 pt-4 pr-4"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"bg-white dark:bg-slate-800 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"sr-only"[39m
+              [36m>[39m
+                [0mClose[0m
+              [36m</span>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"h-6 w-6"[39m
+                [33mdata-slot[39m=[32m"icon"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-width[39m=[32m"1.5"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M6 18 18 6M6 6l12 12"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<form>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"px-4 pt-5 pb-4 sm:p-6 sm:pb-4"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4"[39m
+              [36m>[39m
+                [0mAdd New User[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-4"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"grid grid-cols-2 gap-4"[39m
+                [36m>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mFirst Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mLast Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mEmail[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"email"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mRole[0m
+                  [36m</label>[39m
+                  [36m<select[39m
+                    [33mclass[39m=[32m"form-select mt-1 block w-full"[39m
+                  [36m>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"viewer"[39m
+                    [36m>[39m
+                      [0mViewer[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"nurse"[39m
+                    [36m>[39m
+                      [0mNurse[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"security"[39m
+                    [36m>[39m
+                      [0mSecurity[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"admin"[39m
+                    [36m>[39m
+                      [0mAdmin[0m
+                    [36m</option>[39m
+                  [36m</select>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mPassword[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mConfirm Password[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center mt-4"[39m
+                [36m>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"[39m
+                    [33mid[39m=[32m"is_active"[39m
+                    [33mtype[39m=[32m"checkbox"[39m
+                  [36m/>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"ml-2 block text-sm text-gray-900 dark:text-slate-300"[39m
+                    [33mfor[39m=[32m"is_active"[39m
+                  [36m>[39m
+                    [0mActive Account[0m
+                  [36m</label>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-gray-50 dark:bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-slate-700"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"[39m
+                [33mtype[39m=[32m"submit"[39m
+              [36m>[39m
+                [0mSave[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mCancel[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</form>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/__tests__/UserFormModal.test.tsx > UserFormModal > validates short password
+TestingLibraryElementError: Found a label with the text of: /Email/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-50 overflow-y-auto"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"fixed inset-0 transition-opacity"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute inset-0 bg-gray-900/75 backdrop-blur-sm"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"hidden sm:inline-block sm:align-middle sm:h-screen"[39m
+        [36m>[39m
+          [0m​[0m
+        [36m</span>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute top-0 right-0 pt-4 pr-4"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"bg-white dark:bg-slate-800 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"sr-only"[39m
+              [36m>[39m
+                [0mClose[0m
+              [36m</span>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"h-6 w-6"[39m
+                [33mdata-slot[39m=[32m"icon"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-width[39m=[32m"1.5"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M6 18 18 6M6 6l12 12"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<form>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"px-4 pt-5 pb-4 sm:p-6 sm:pb-4"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4"[39m
+              [36m>[39m
+                [0mAdd New User[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-4"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"grid grid-cols-2 gap-4"[39m
+                [36m>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mFirst Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mLast Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mEmail[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"email"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mRole[0m
+                  [36m</label>[39m
+                  [36m<select[39m
+                    [33mclass[39m=[32m"form-select mt-1 block w-full"[39m
+                  [36m>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"viewer"[39m
+                    [36m>[39m
+                      [0mViewer[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"nurse"[39m
+                    [36m>[39m
+                      [0mNurse[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"security"[39m
+                    [36m>[39m
+                      [0mSecurity[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"admin"[39m
+                    [36m>[39m
+                      [0mAdmin[0m
+                    [36m</option>[39m
+                  [36m</select>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mPassword[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mConfirm Password[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center mt-4"[39m
+                [36m>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"[39m
+                    [33mid[39m=[32m"is_active"[39m
+                    [33mtype[39m=[32m"checkbox"[39m
+                  [36m/>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"ml-2 block text-sm text-gray-900 dark:text-slate-300"[39m
+                    [33mfor[39m=[32m"is_active"[39m
+                  [36m>[39m
+                    [0mActive Account[0m
+                  [36m</label>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-gray-50 dark:bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-slate-700"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"[39m
+                [33mtype[39m=[32m"submit"[39m
+              [36m>[39m
+                [0mSave[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mCancel[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</form>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText ../node_modules/@testing-library/dom/dist/queries/label-text.js:108:40
+ ❯ ../node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/__tests__/UserFormModal.test.tsx:20:29
+     18| 
+     19|     // Fill form
+     20|     fireEvent.change(screen.getByLabelText(/Email/i), { target: { valu…
+       |                             ^
+     21|     fireEvent.change(screen.getByLabelText(/First Name/i), { target: {…
+     22|     fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/components/__tests__/UserFormModal.test.tsx > UserFormModal > submits valid data
+TestingLibraryElementError: Found a label with the text of: /Email/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-50 overflow-y-auto"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"fixed inset-0 transition-opacity"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute inset-0 bg-gray-900/75 backdrop-blur-sm"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"hidden sm:inline-block sm:align-middle sm:h-screen"[39m
+        [36m>[39m
+          [0m​[0m
+        [36m</span>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"absolute top-0 right-0 pt-4 pr-4"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"bg-white dark:bg-slate-800 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"sr-only"[39m
+              [36m>[39m
+                [0mClose[0m
+              [36m</span>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"h-6 w-6"[39m
+                [33mdata-slot[39m=[32m"icon"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-width[39m=[32m"1.5"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M6 18 18 6M6 6l12 12"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<form>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"px-4 pt-5 pb-4 sm:p-6 sm:pb-4"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4"[39m
+              [36m>[39m
+                [0mAdd New User[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-4"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"grid grid-cols-2 gap-4"[39m
+                [36m>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mFirst Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                  [36m<div>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                    [36m>[39m
+                      [0mLast Name[0m
+                    [36m</label>[39m
+                    [36m<input[39m
+                      [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                      [33mrequired[39m=[32m""[39m
+                      [33mtype[39m=[32m"text"[39m
+                      [33mvalue[39m=[32m""[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mEmail[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"email"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mRole[0m
+                  [36m</label>[39m
+                  [36m<select[39m
+                    [33mclass[39m=[32m"form-select mt-1 block w-full"[39m
+                  [36m>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"viewer"[39m
+                    [36m>[39m
+                      [0mViewer[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"nurse"[39m
+                    [36m>[39m
+                      [0mNurse[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"security"[39m
+                    [36m>[39m
+                      [0mSecurity[0m
+                    [36m</option>[39m
+                    [36m<option[39m
+                      [33mvalue[39m=[32m"admin"[39m
+                    [36m>[39m
+                      [0mAdmin[0m
+                    [36m</option>[39m
+                  [36m</select>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mPassword[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"block text-sm font-medium text-gray-700 dark:text-slate-300"[39m
+                  [36m>[39m
+                    [0mConfirm Password[0m
+                  [36m</label>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"form-input mt-1 block w-full"[39m
+                    [33mrequired[39m=[32m""[39m
+                    [33mtype[39m=[32m"password"[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m/>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center mt-4"[39m
+                [36m>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"[39m
+                    [33mid[39m=[32m"is_active"[39m
+                    [33mtype[39m=[32m"checkbox"[39m
+                  [36m/>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"ml-2 block text-sm text-gray-900 dark:text-slate-300"[39m
+                    [33mfor[39m=[32m"is_active"[39m
+                  [36m>[39m
+                    [0mActive Account[0m
+                  [36m</label>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-gray-50 dark:bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-slate-700"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"[39m
+                [33mtype[39m=[32m"submit"[39m
+              [36m>[39m
+                [0mSave[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mCancel[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</form>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText ../node_modules/@testing-library/dom/dist/queries/label-text.js:108:40
+ ❯ ../node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/__tests__/UserFormModal.test.tsx:46:29
+     44|     );
+     45| 
+     46|     fireEvent.change(screen.getByLabelText(/Email/i), { target: { valu…
+       |                             ^
+     47|     fireEvent.change(screen.getByLabelText(/First Name/i), { target: {…
+     48|     fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  2 failed | 4 passed (6)
+   Start at  10:21:36
+   Duration  3.34s (transform 555ms, setup 672ms, collect 1.55s, tests 237ms, environment 2.47s, prepare 1.67s)
+
+npm ERR! Lifecycle script `test` failed with error: 
+npm ERR! Error: command failed 
+npm ERR!   in workspace: admin-dashboard@0.1.0 
+npm ERR!   at location: /home/omarsl530/Projects/Infant-Stack/dashboards/admin-dashboard 
