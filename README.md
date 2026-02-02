@@ -77,7 +77,7 @@ flowchart TB
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_ORG/infant-stack.git
+git clone https://github.com/omarsl530/infant-stack.git
 cd infant-stack
 
 # Start all services
