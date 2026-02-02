@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect } from "vitest";
 import UserFormModal from "../UserFormModal";
-import { User } from "../../types";
+
 
 describe("UserFormModal", () => {
   const mockOnClose = vi.fn();

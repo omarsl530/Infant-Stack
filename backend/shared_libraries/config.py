@@ -28,10 +28,16 @@ class Settings(BaseSettings):
     postgres_user: str = "admin"
     postgres_password: str = "securepassword"
     postgres_db: str = "biobaby_db"
+    database_url: str | None = None
 
     @property
     def postgres_url(self) -> str:
         """Construct PostgreSQL connection URL."""
+        if self.database_url:
+            url = self.database_url
+            if url.startswith("postgresql://") and "+asyncpg" not in url:
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            return url
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"

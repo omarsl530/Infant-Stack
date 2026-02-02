@@ -6,7 +6,7 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +15,6 @@ from database.orm_models.models import Infant, TagStatus
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from shared_libraries.database import get_db
 
-router = APIRouter()
 router = APIRouter()
 
 
@@ -46,8 +45,7 @@ class InfantResponse(BaseModel):
     mother_name: str | None = None
     mother_tag_id: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InfantList(BaseModel):

@@ -9,7 +9,7 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,12 +36,11 @@ class ConfigResponse(BaseModel):
     updated_at: datetime
     updated_by: UUID | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
-    @validator("value", pre=True)
+    @field_validator("value", mode="before")
     @classmethod
-    def parse_value(cls, v, values):
+    def parse_value(cls, v):
         """Parse value based on type if it's a string."""
         if not isinstance(v, str):
             return v
