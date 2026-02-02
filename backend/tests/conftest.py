@@ -14,20 +14,60 @@ from services.api_gateway.main import app
 from shared_libraries.database import Base, get_db
 from shared_libraries.auth import get_current_user, CurrentUser
 
-# event_loop handled by pytest-asyncio (auto mode)
+# event_loop handled by pytest-asyncio (auto mode), but we need session scope for global engine compatibility
+@pytest.fixture(scope="session")
+def event_loop():
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+from sqlalchemy import select
+from database.orm_models.models import User
+from shared_libraries.database import async_session_factory
 
 @pytest.fixture
-def mock_admin_user():
-    import uuid
-    return CurrentUser(
-        id=str(uuid.uuid4()),
-        email="admin@test.com",
-        username="admin",
-        first_name="Test",
-        last_name="Admin",
-        roles=["admin"],
-        permissions=["*"]
-    )
+async def db_admin_user():
+    """Fetch a real admin user from the DB for integration tests."""
+    async with async_session_factory() as session:
+        from database.orm_models.roles import Role
+        # Try to find existing admin
+        result = await session.execute(select(User).where(User.email == "admin@example.com"))
+        user = result.scalars().first()
+        if not user:
+             # Find admin role
+             role_result = await session.execute(select(Role).where(Role.name == "admin"))
+             admin_role = role_result.scalars().first()
+             if not admin_role:
+                 # Should not happen in seeded DB, but for robustness:
+                 raise RuntimeError("Role 'admin' not found.")
+
+             # Create the admin user if missing (Auto-seeding for tests)
+             user = User(
+                 email="admin@example.com",
+                 hashed_password="hashed_admin_secret",
+                 first_name="Admin",
+                 last_name="System",
+                 role=admin_role, # Assign OBJECT, not string
+                 is_active=True
+             )
+             session.add(user)
+             await session.commit()
+             await session.refresh(user)
+        
+        # Create a CurrentUser object that matches what the auth middleware expects
+        # BUT keeps the ID consistent with the DB for audit logs
+        return CurrentUser(
+            id=str(user.id),
+            email=user.email,
+            username="admin", # keycloak username often matches email or separate, adapting...
+            first_name=user.first_name,
+            last_name=user.last_name,
+            roles=["admin"],
+            permissions=["*"]
+        )
 
 @pytest.fixture
 async def async_client() -> AsyncGenerator[AsyncClient, None]:
@@ -36,9 +76,9 @@ async def async_client() -> AsyncGenerator[AsyncClient, None]:
         yield ac
 
 @pytest.fixture
-async def client_with_admin(mock_admin_user) -> AsyncGenerator[AsyncClient, None]:
-    """Client with admin auth override."""
-    app.dependency_overrides[get_current_user] = lambda: mock_admin_user
+async def client_with_admin(db_admin_user) -> AsyncGenerator[AsyncClient, None]:
+    """Client with admin auth override using REAL user ID."""
+    app.dependency_overrides[get_current_user] = lambda: db_admin_user
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides = {}

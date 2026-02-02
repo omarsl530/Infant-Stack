@@ -3,21 +3,29 @@ Tests for API Gateway health endpoints.
 """
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
+@pytest.mark.asyncio
+async def test_health_check(async_client: AsyncClient) -> None:
+    """Test the root health check endpoint."""
+    response = await async_client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
 
-def test_health_check(client: TestClient) -> None:
-    """Test the health check endpoint returns healthy status."""
-    response = client.get("/health")
+@pytest.mark.asyncio
+async def test_api_health_check(async_client: AsyncClient) -> None:
+    """Test the API v1 health check endpoint."""
+    response = await async_client.get("/api/v1/health/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
     assert data["service"] == "api-gateway"
 
-
-def test_readiness_check(client: TestClient) -> None:
+@pytest.mark.asyncio
+async def test_readiness_check(async_client: AsyncClient) -> None:
     """Test the readiness endpoint returns ready status."""
-    response = client.get("/ready")
+    response = await async_client.get("/api/v1/health/ready")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ready"

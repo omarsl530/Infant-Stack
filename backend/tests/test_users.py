@@ -2,7 +2,6 @@ import pytest
 from httpx import AsyncClient
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="Blocked: Mock Admin User not present in DB (Foreign Key Violation in Audit)")
 async def test_create_user_flow(client_with_admin: AsyncClient):
     """
     TC-USER-001: Admin creates valid user via API.
@@ -21,10 +20,10 @@ async def test_create_user_flow(client_with_admin: AsyncClient):
     response = await client_with_admin.post("/api/v1/users", json=payload)
     
     # Debug info if fails
-    if response.status_code != 200:
+    if response.status_code != 201:
         print(f"Failed with {response.status_code}: {response.text}")
 
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
     assert data["email"] == payload["email"]
     assert data["role"] == "nurse"
