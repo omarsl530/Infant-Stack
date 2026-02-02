@@ -60,8 +60,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
       }
 
       await onSubmit(submitData);
-    } catch (err) {
-      setError("Failed to save user");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to save user");
     } finally {
       setIsSubmitting(false);
     }

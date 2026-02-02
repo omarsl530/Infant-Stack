@@ -190,23 +190,19 @@ export default function DashboardHub() {
           </section>
         )}
 
-        {/* Inaccessible Dashboards (shown dimmed) */}
-        {inaccessibleDashboards.length > 0 && (
-          <section>
-            <h3 className="text-lg font-medium text-slate-500 mb-4">
-              Other Available Dashboards
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {inaccessibleDashboards.map((dashboard) => (
-                <DashboardCard
-                  key={dashboard.id}
-                  dashboard={dashboard}
-                  hasAccess={false}
-                />
-              ))}
-            </div>
-          </section>
+        {accessibleDashboards.length === 0 && (
+          <div className="text-center py-12 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+            <ShieldCheckIcon className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">Access Restricted</h3>
+            <p className="text-slate-400 max-w-md mx-auto">
+              Your account (`{userRoles.join(", ")}`) does not have access to any specific dashboards yet.
+              <br className="mb-2"/>
+              Please contact an administrator to assign the necessary roles.
+            </p>
+          </div>
         )}
+
+        {/* Inaccessible Dashboards are now hidden per security requirements */}
       </main>
     </div>
   );

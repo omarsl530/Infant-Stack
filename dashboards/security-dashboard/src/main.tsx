@@ -20,7 +20,7 @@ const oidcConfig: AuthProviderProps = {
     "http://localhost:8080/realms/infant-stack",
   client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || "infant-stack-spa",
   redirect_uri: window.location.origin,
-  post_logout_redirect_uri: "http://localhost:3003", // Redirect to home-dashboard
+  post_logout_redirect_uri: "http://localhost:3003/login", // Redirect to home-dashboard login
   scope: "openid profile email roles",
 
   onSigninCallback: () => {

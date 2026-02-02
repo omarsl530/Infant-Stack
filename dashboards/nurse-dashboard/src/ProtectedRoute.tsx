@@ -6,7 +6,7 @@
  */
 
 import { ReactNode, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+
 import { useAuth } from "./AuthContext";
 
 const HOME_DASHBOARD_URL = "http://localhost:3003";
@@ -25,7 +25,7 @@ export default function ProtectedRoute({
   requireAll = false,
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, roles, login } = useAuth();
-  const location = useLocation();
+
 
   // Redirect to Keycloak SSO if not authenticated
   useEffect(() => {

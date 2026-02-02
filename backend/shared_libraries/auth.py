@@ -181,18 +181,35 @@ async def verify_token(token: str) -> TokenPayload:
             raise credentials_exception
 
         public_key = jwk.construct(key_data)
+        
+        # Verify, but handle potential issuer mismatch due to Docker networking
+        # Frontend sees localhost:8080, Backend sees keycloak:8080
+        options = {
+            "verify_aud": False,
+            "verify_iss": False, # We will manually check issuer
+            "verify_exp": True,
+            "verify_iat": True,
+        }
+        
         payload_dict = jwt.decode(
             token,
             public_key,
             algorithms=["RS256"],
             issuer=settings.keycloak_issuer,
-            options={
-                "verify_aud": False,
-                "verify_iss": True,
-                "verify_exp": True,
-                "verify_iat": True,
-            },
+            options=options,
         )
+        
+        # Manual Issuer Check
+        iss = payload_dict.get("iss")
+        expected_issKeycloak = settings.keycloak_issuer
+        # Create an alternative valid issuer for localhost
+        expected_issLocal = expected_issKeycloak.replace("http://keycloak:8080", "http://localhost:8080")
+        
+        if iss not in [expected_issKeycloak, expected_issLocal]:
+             logger.warning("token_verification_failed_issuer_mismatch", iss=iss, expected=[expected_issKeycloak, expected_issLocal])
+             raise credentials_exception
+
+        return TokenPayload(**payload_dict)
         return TokenPayload(**payload_dict)
     except Exception as e:
         logger.warning("token_verification_failed", error=str(e))
@@ -239,16 +256,18 @@ async def get_current_user(
         if not db_user:
             logger.info("jit_provisioning_user", user_id=user_uuid, email=payload.email)
 
-            # Find admin role
-            role_query = select(Role).where(Role.name == "admin")
+            # Find viewer role (Safe default)
+            role_query = select(Role).where(Role.name == "viewer")
             role_result = await db.execute(role_query)
-            admin_role = role_result.scalar_one_or_none()
+            default_role = role_result.scalar_one_or_none()
 
-            if not admin_role:
-                # Fallback to any role if admin not found (bootstrap issue)
-                fallback_query = select(Role).limit(1)
+            if not default_role:
+                # If viewer doesn't exist, try getting any non-admin role, or create viewer?
+                # For now, let's just log verification warning and fail safe or use a safe fallback.
+                # Do NOT default to admin.
+                fallback_query = select(Role).where(Role.name != "admin").limit(1)
                 fallback_result = await db.execute(fallback_query)
-                admin_role = fallback_result.scalar_one_or_none()
+                default_role = fallback_result.scalar_one_or_none()
 
             # Safe username generation
             email = payload.email or ""
@@ -266,7 +285,7 @@ async def get_current_user(
                 last_name=payload.family_name or "",
                 hashed_password="OIDC_LOGIN_NO_PASSWORD",  # Placeholder for OIDC users
                 is_active=True,
-                role_id=admin_role.id if admin_role else None,
+                role_id=default_role.id if default_role else None,
             )
             db.add(new_user)
             await db.commit()

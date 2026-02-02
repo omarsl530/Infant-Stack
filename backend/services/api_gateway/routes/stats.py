@@ -30,18 +30,26 @@ async def get_dashboard_stats(
     Get aggregated dashboard statistics.
     """
 
-    # User stats
+    # User stats - Count ALL users per user request
     total_users_result = await db.execute(select(func.count(User.id)))
     total_users = total_users_result.scalar() or 0
 
-    active_users_result = await db.execute(
-        select(func.count(User.id)).where(User.is_active.is_(True))
-    )  # Approximate for sessions? Or use last_login window?
-    # Users with recent login? Let's generic to active users for now as sessions are Redis based and harder to query from here easily without Redis client
-    # But Header says "Active Sessions". Let's stick to active users count for simplicity or distinct users in audit logs today.
-    active_sessions = (
-        active_users_result.scalar() or 0
-    )  # Placeholder logic for "Active Sessions"
+    # Active sessions (approximate using last_login in the last 24 hours)
+    from datetime import datetime, timedelta
+
+    one_day_ago = datetime.utcnow() - timedelta(hours=24)
+    active_sessions_result = await db.execute(
+        select(func.count(User.id)).where(User.last_login >= one_day_ago)
+    )
+    active_sessions = active_sessions_result.scalar() or 0
+
+    # New users this month
+    today = datetime.utcnow()
+    start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    new_users_result = await db.execute(
+        select(func.count(User.id)).where(User.created_at >= start_of_month)
+    )
+    new_users_this_month = new_users_result.scalar() or 0
 
     # Tag stats
     active_infants_result = await db.execute(
@@ -76,8 +84,8 @@ async def get_dashboard_stats(
     return {
         "users": {
             "total": total_users,
-            "active_sessions": active_sessions,  # Or derived from Redis if available
-            "new_this_month": 0,  # TODO: Implement if needed
+            "active_sessions": active_sessions,
+            "new_this_month": new_users_this_month,
         },
         "tags": {
             "total_active": total_active_tags,

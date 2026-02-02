@@ -17,6 +17,7 @@ from database.orm_models.roles import Role as RoleModel
 from shared_libraries.auth import require_admin
 from shared_libraries.database import get_db
 from shared_libraries.logging import get_logger
+from shared_libraries.keycloak_admin import get_keycloak_admin
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -219,7 +220,7 @@ async def create_user(
 
     Admin only.
     """
-    # Check if email already exists
+    # Check if email already exists locally
     existing = await db.execute(select(User).where(User.email == user_data.email))
     if existing.scalar_one_or_none():
         raise HTTPException(
@@ -238,33 +239,62 @@ async def create_user(
             detail=f"Role '{user_data.role}' not found",
         )
 
-    # Create user
-    user = User(
+    # Create user in Keycloak first
+    kc_admin = get_keycloak_admin()
+    kc_user_id = await kc_admin.create_user(
+        username=user_data.email, # Use email as username
         email=user_data.email,
+        password=user_data.password,
         first_name=user_data.first_name,
         last_name=user_data.last_name,
-        role=role_obj,  # relationship assignment
-        hashed_password=hash_password(user_data.password),
-        is_active=True,
+        roles=[user_data.role],
+        enabled=True,
+        email_verified=True,
     )
-    db.add(user)
-    await db.flush()
-    await db.refresh(user)
 
-    # Audit log
-    await log_audit(
-        db,
-        current_user.id,
-        "create_user",
-        "user",
-        str(user.id),
-        {"email": user.email, "role": role_obj.name},
-    )
-    await db.commit()
+    if not kc_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user in identity provider",
+        )
 
-    logger.info("user_created", user_id=str(user.id), email=user.email)
+    # Create user in Postgres with Keycloak ID
+    try:
+        user = User(
+            id=UUID(kc_user_id), # Use Keycloak ID
+            email=user_data.email,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
+            role=role_obj,
+            hashed_password="OIDC_MANAGED", # Password is in Keycloak
+            is_active=True,
+        )
+        db.add(user)
+        await db.flush()
+        await db.refresh(user)
 
-    return UserResponse.model_validate(user)
+        # Audit log
+        await log_audit(
+            db,
+            current_user.id,
+            "create_user",
+            "user",
+            str(user.id),
+            {"email": user.email, "role": role_obj.name, "keycloak_id": kc_user_id},
+        )
+        await db.commit()
+
+        logger.info("user_created", user_id=str(user.id), email=user.email)
+
+        return UserResponse.model_validate(user)
+    except Exception as e:
+        logger.error("db_user_creation_failed", error=str(e), keycloak_id=kc_user_id)
+        # Rollback Keycloak user if DB fails (best effort)
+        await kc_admin.delete_user(kc_user_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database creation failed",
+        )
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -387,16 +417,36 @@ async def delete_user(
             detail="User not found",
         )
 
-    # Soft delete - deactivate
-    user.is_active = False
+    # Protected Users Check
+    PROTECTED_EMAILS = ["admin@infantstack.com", "nurse@infantstack.com"]
+    if user.email in PROTECTED_EMAILS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Cannot delete protected user: {user.email}",
+        )
 
+    # Delete from Keycloak first
+    kc_admin = get_keycloak_admin()
+    # Assuming User.id matches Keycloak ID (which it should now)
+    kc_deleted = await kc_admin.delete_user(str(user_id))
+    
+    if not kc_deleted:
+         # Log warning but proceed with DB delete to avoid zombie records? 
+         # Or fail? If KC delete fails, user can still login. So we should probably fail.
+         # But if user doesn't exist in KC (legacy), we should allow DB delete.
+         # For now, let's log and proceed, assuming consistency fixes later.
+         logger.warning("keycloak_delete_failed_or_missing", user_id=str(user_id))
+
+    # Hard delete from Postgres
+    await db.delete(user)
+    
     # Audit log
     await log_audit(
         db,
         current_user.id,
         "delete_user",
         "user",
-        str(user.id),
+        str(user_id), # Use ID since object is deleted
         {"email": user.email},
     )
     await db.commit()

@@ -308,7 +308,7 @@ function AlertItem({
 // =============================================================================
 
 export default function App() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, roles } = useAuth();
   const [infants, setInfants] = useState<Infant[]>([]);
   const [mothers, setMothers] = useState<Mother[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -594,11 +594,13 @@ export default function App() {
                     {user?.fullName || "User"}
                   </p>
                   <p className="text-xs text-slate-400">
-                    {isAdmin() ? (
-                      <span className="text-amber-400">Admin</span>
-                    ) : (
-                      <span className="text-blue-400">User</span>
-                    )}
+                      <span className="text-blue-400">
+                        {roles.length > 0
+                          ? roles
+                              .map((r) => r.charAt(0).toUpperCase() + r.slice(1))
+                              .join(", ")
+                          : "User"}
+                      </span>
                   </p>
                 </div>
                 <button

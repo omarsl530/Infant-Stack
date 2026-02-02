@@ -11,7 +11,10 @@ import {
   XMarkIcon,
   ChartBarIcon,
   HomeIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+
+import { useAuth } from "react-oidc-context";
 
 import {
   FloorplanMap,
@@ -64,6 +67,7 @@ type ActiveView = "map" | "gates" | "cameras" | "events" | "operations";
 
 export default function App() {
   // State
+  const auth = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeView, setActiveView] = useState<ActiveView>("map");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -367,6 +371,13 @@ export default function App() {
               </button>
               <button className="p-2 rounded-lg hover:bg-slate-700/50">
                 <Cog6ToothIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => auth.signoutRedirect()}
+                className="p-2 rounded-lg hover:bg-slate-700/50 text-red-400"
+                title="Sign Out"
+              >
+                <ArrowRightOnRectangleIcon className="w-5 h-5" />
               </button>
             </div>
           </div>

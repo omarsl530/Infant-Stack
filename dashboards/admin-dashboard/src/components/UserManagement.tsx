@@ -14,6 +14,7 @@ import {
   updateUser,
   deleteUser,
   resetUserPassword,
+  updateUserPassword,
   assignRole,
 } from "../api";
 import UserFormModal from "./UserFormModal";
@@ -33,6 +34,7 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
+  const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
 
   useEffect(() => {
     loadData();
@@ -117,7 +119,10 @@ export default function UserManagement() {
 
     try {
       await deleteUser(deletingUser.id);
-      setUsers(users.filter((u) => u.id !== deletingUser.id));
+      // Hard delete: remove from list
+      setUsers((prevUsers) =>
+        prevUsers.filter((u) => u.id !== deletingUser.id),
+      );
       setDeletingUser(null);
     } catch (error) {
       console.error("Failed to delete user:", error);
@@ -133,6 +138,19 @@ export default function UserManagement() {
       setResettingUser(null);
     } catch (error) {
       console.error("Failed to reset password:", error);
+    }
+  };
+
+  // Handle direct password update (Admin override)
+  const handlePasswordUpdate = async (password: string) => {
+    if (!passwordResetUser) return;
+    try {
+        await updateUserPassword(passwordResetUser.id, password);
+        alert(`Password updated for ${passwordResetUser.email}`);
+        setPasswordResetUser(null);
+    } catch (error) {
+        console.error("Failed to update password:", error);
+        alert("Failed to update password.");
     }
   };
 
@@ -263,18 +281,27 @@ export default function UserManagement() {
                         <PencilSquareIcon className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => setResettingUser(user)}
-                        className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-700 rounded"
-                        title="Reset Password"
-                      >
-                        <KeyIcon className="w-4 h-4" />
-                      </button>
-                      <button
                         onClick={() => setDeletingUser(user)}
-                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded"
-                        title="Delete"
+                        disabled={["admin@infantstack.com", "nurse@infantstack.com"].includes(user.email)}
+                        className={`p-1.5 rounded ${
+                          ["admin@infantstack.com", "nurse@infantstack.com"].includes(user.email)
+                            ? "text-slate-600 cursor-not-allowed"
+                            : "text-slate-400 hover:text-red-400 hover:bg-slate-700"
+                        }`}
+                        title={
+                          ["admin@infantstack.com", "nurse@infantstack.com"].includes(user.email)
+                            ? "Protected User"
+                            : "Delete"
+                        }
                       >
                         <TrashIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                         onClick={() => setPasswordResetUser(user)}
+                         className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded ml-1"
+                         title="Change Password"
+                      >
+                        <KeyIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -330,6 +357,121 @@ export default function UserManagement() {
           onCancel={() => setResettingUser(null)}
         />
       )}
+
+      {/* Direct Password Update Modal */}
+      {passwordResetUser && (
+        <PasswordResetModal
+          user={passwordResetUser}
+          onConfirm={handlePasswordUpdate}
+          onCancel={() => setPasswordResetUser(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function PasswordResetModal({
+  user,
+  onConfirm,
+  onCancel,
+}: {
+  user: User;
+  onConfirm: (password: string) => void;
+  onCancel: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (password.length < 4) {
+          setError("Password must be at least 4 characters");
+          return;
+      }
+      onConfirm(password);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border border-slate-700 shadow-xl">
+        <h3 className="text-xl font-semibold text-white mb-2">Change Password</h3>
+        <p className="text-slate-400 mb-6">
+          Enter a new password for <span className="text-white font-medium">{user.email}</span>.
+        </p>
+        
+        <form onSubmit={handleSubmit}>
+            <input
+              type="password"
+              placeholder="New Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              autoFocus
+            />
+            {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+            
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors shadow-lg shadow-blue-900/20"
+              >
+                Update Password
+              </button>
+            </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
+
+function DeleteConfirmationModal({
+  title,
+  message,
+  confirmLabel,
+  confirmVariant,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  confirmVariant: "primary" | "danger";
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border border-slate-700 shadow-xl">
+        <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
+        <p className="text-slate-400 mb-6">{message}</p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 text-white rounded transition-colors shadow-lg ${
+              confirmVariant === "danger"
+                ? "bg-red-600 hover:bg-red-500 shadow-red-900/20"
+                : "bg-blue-600 hover:bg-blue-500 shadow-blue-900/20"
+            }`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

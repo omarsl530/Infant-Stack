@@ -282,7 +282,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       await keycloak.logout({
-        redirectUri: "http://localhost:3003",
+        redirectUri: "http://localhost:3003/login",
       });
     } catch (err) {
       console.error("[Auth] Logout failed:", err);

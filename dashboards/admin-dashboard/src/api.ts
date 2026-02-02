@@ -162,6 +162,18 @@ export async function assignRole(userId: string, role: string): Promise<User> {
   return handleResponse<User>(response);
 }
 
+export async function updateUserPassword(
+  userId: string,
+  password: string,
+): Promise<void> {
+  const response = await authFetch(`${API_BASE}/users/${userId}/password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  return handleResponse<void>(response);
+}
+
 export async function resetUserPassword(userId: string): Promise<void> {
   const response = await authFetch(
     `${API_BASE}/users/${userId}/reset-password`,
