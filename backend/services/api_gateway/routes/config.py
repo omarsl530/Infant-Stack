@@ -75,7 +75,9 @@ class ConfigCreate(ConfigUpdate):
 async def list_config(
     public_only: bool = False,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser | None = None,  # Allow unauthenticated if public_only is True
+    current_user: (
+        CurrentUser | None
+    ) = None,  # Allow unauthenticated if public_only is True
 ) -> list[ConfigResponse]:
     """List system configurations."""
     if not public_only and not current_user:

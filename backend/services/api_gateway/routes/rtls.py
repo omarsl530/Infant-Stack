@@ -236,7 +236,6 @@ async def get_latest_positions(
     )
 
 
-
 from fastapi.responses import StreamingResponse
 
 

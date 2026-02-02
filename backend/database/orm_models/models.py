@@ -21,6 +21,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from .roles import Role
+
+
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
 
@@ -371,17 +373,13 @@ class GateEvent(Base):
     previous_state: Mapped[GateState | None] = mapped_column(
         SQLEnum(GateState, name="gate_state"), nullable=True
     )
-    badge_id: Mapped[str | None] = mapped_column(
-        String(50), nullable=True, index=True
-    )
+    badge_id: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     user_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     user_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     result: Mapped[GateEventResult | None] = mapped_column(
         SQLEnum(GateEventResult), nullable=True
     )
-    direction: Mapped[str | None] = mapped_column(
-        String(10), nullable=True
-    )  # IN, OUT
+    direction: Mapped[str | None] = mapped_column(String(10), nullable=True)  # IN, OUT
     duration_ms: Mapped[int | None] = mapped_column(nullable=True)
     extra_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     timestamp: Mapped[datetime] = mapped_column(
@@ -451,9 +449,7 @@ class Camera(Base):
     name: Mapped[str] = mapped_column(String(100))
     floor: Mapped[str] = mapped_column(String(20), index=True)
     zone: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    gate_id: Mapped[str | None] = mapped_column(
-        String(50), nullable=True, index=True
-    )
+    gate_id: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     stream_url: Mapped[str] = mapped_column(String(500))
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[CameraStatus] = mapped_column(

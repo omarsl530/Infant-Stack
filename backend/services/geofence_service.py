@@ -4,7 +4,6 @@ Geofencing Service.
 Handles logic for checking if tags are entering/exiting zones and triggering alerts.
 """
 
-
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

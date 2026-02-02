@@ -5,7 +5,6 @@
  * Shows loading state during authentication initialization.
  */
 
-import React from "react";
 import { Navigate } from "react-router-dom";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthContext";

@@ -163,7 +163,9 @@ async def create_role(
         logger.info("role_created", admin_id=current_user.id, role_name=new_role.name)
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=400, detail="Database integrity error") from None
+        raise HTTPException(
+            status_code=400, detail="Database integrity error"
+        ) from None
 
     return RoleResponse(
         id=new_role.id,

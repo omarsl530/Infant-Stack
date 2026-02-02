@@ -372,9 +372,7 @@ bearer_scheme_optional = HTTPBearer(auto_error=False)
 
 
 async def get_current_user_optional(
-    credentials: HTTPAuthorizationCredentials | None = Security(
-        bearer_scheme_optional
-    ),
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme_optional),
 ) -> CurrentUser | None:
     if not credentials:
         return None

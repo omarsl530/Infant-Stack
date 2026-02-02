@@ -37,8 +37,8 @@ export function OperationsDashboard({
   };
 
   const gateHealth = {
-    online: gates.filter((g) => g.status === "online").length,
-    offline: gates.filter((g) => g.status === "offline").length,
+    online: gates.filter((g) => (g as any).status === "online").length,
+    offline: gates.filter((g) => (g as any).status === "offline").length,
     forced: gates.filter((g) => g.state === "FORCED_OPEN").length,
   };
 
@@ -49,9 +49,9 @@ export function OperationsDashboard({
 
   const activeAlerts = alerts.filter((a) => !a.acknowledged);
   const alertSeverity = {
-    high: activeAlerts.filter((a) => a.severity === "high").length,
-    medium: activeAlerts.filter((a) => a.severity === "medium").length,
-    low: activeAlerts.filter((a) => a.severity === "low").length,
+    high: activeAlerts.filter((a) => a.severity === "critical").length,
+    medium: activeAlerts.filter((a) => a.severity === "warning").length,
+    low: activeAlerts.filter((a) => a.severity === "info").length,
   };
 
   return (
