@@ -5,7 +5,6 @@ Provides endpoints for RTLS position tracking and historical data.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -17,11 +16,10 @@ from database.orm_models.models import RTLSPosition
 from services.api_gateway.routes.websocket import (
     broadcast_alert,
     broadcast_position_update,
-    manager,
     serialize_alert,
 )
 from services.geofence_service import check_geofence
-from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
+from shared_libraries.auth import CurrentUser, require_user_or_admin
 from shared_libraries.database import get_db
 
 router = APIRouter()
@@ -43,8 +41,8 @@ class RTLSPositionCreate(BaseModel):
     floor: str
     accuracy: float = 0.5
     battery_pct: int = 100
-    gateway_id: Optional[str] = None
-    rssi: Optional[int] = None
+    gateway_id: str | None = None
+    rssi: int | None = None
 
 
 class RTLSPositionResponse(BaseModel):
@@ -59,8 +57,8 @@ class RTLSPositionResponse(BaseModel):
     floor: str
     accuracy: float
     battery_pct: int
-    gateway_id: Optional[str] = None
-    rssi: Optional[int] = None
+    gateway_id: str | None = None
+    rssi: int | None = None
     timestamp: datetime
 
     class Config:
@@ -79,8 +77,8 @@ class RTLSPositionHistoryParams(BaseModel):
 
     from_time: datetime
     to_time: datetime
-    tag_id: Optional[str] = None
-    floor: Optional[str] = None
+    tag_id: str | None = None
+    floor: str | None = None
 
 
 class RTLSLatestPositions(BaseModel):
@@ -179,8 +177,8 @@ async def create_position(
 
 @router.get("/positions/latest", response_model=RTLSLatestPositions)
 async def get_latest_positions(
-    floor: Optional[str] = None,
-    asset_type: Optional[str] = None,
+    floor: str | None = None,
+    asset_type: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> RTLSLatestPositions:
@@ -238,8 +236,6 @@ async def get_latest_positions(
     )
 
 
-import csv
-import io
 
 from fastapi.responses import StreamingResponse
 
@@ -248,8 +244,8 @@ from fastapi.responses import StreamingResponse
 async def get_position_history(
     from_time: datetime,
     to_time: datetime,
-    tag_id: Optional[str] = None,
-    floor: Optional[str] = None,
+    tag_id: str | None = None,
+    floor: str | None = None,
     limit: int = Query(1000, ge=1, le=10000),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -313,8 +309,8 @@ async def get_position_history(
 async def get_position_export(
     from_time: datetime,
     to_time: datetime,
-    tag_id: Optional[str] = None,
-    floor: Optional[str] = None,
+    tag_id: str | None = None,
+    floor: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ):
@@ -362,8 +358,8 @@ async def get_position_export(
 @router.get("/tags/{tag_id}/positions", response_model=RTLSPositionList)
 async def get_tag_positions(
     tag_id: str,
-    from_time: Optional[datetime] = None,
-    to_time: Optional[datetime] = None,
+    from_time: datetime | None = None,
+    to_time: datetime | None = None,
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),

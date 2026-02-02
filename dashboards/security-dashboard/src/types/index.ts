@@ -4,7 +4,7 @@
 
 export interface RTLSPosition {
   tagId: string;
-  assetType: 'infant' | 'mother' | 'staff' | 'equipment';
+  assetType: "infant" | "mother" | "staff" | "equipment";
   x: number;
   y: number;
   z: number;
@@ -21,8 +21,8 @@ export interface RTLSTag {
   id: string;
   tagId: string;
   name: string;
-  assetType: 'infant' | 'mother' | 'staff' | 'equipment';
-  status: 'active' | 'inactive' | 'alert' | 'low_battery';
+  assetType: "infant" | "mother" | "staff" | "equipment";
+  status: "active" | "inactive" | "alert" | "low_battery";
   lastPosition: RTLSPosition | null;
   assignedTo?: string;
 }
@@ -31,7 +31,12 @@ export interface RTLSTag {
 // Gate & Access Types
 // =============================================================================
 
-export type GateState = 'OPEN' | 'CLOSED' | 'FORCED_OPEN' | 'HELD_OPEN' | 'UNKNOWN';
+export type GateState =
+  | "OPEN"
+  | "CLOSED"
+  | "FORCED_OPEN"
+  | "HELD_OPEN"
+  | "UNKNOWN";
 
 export interface Gate {
   id: string;
@@ -47,7 +52,7 @@ export interface Gate {
 
 export interface GateEvent {
   id: string;
-  eventType: 'badgeScan' | 'gateState' | 'forced' | 'heldOpen';
+  eventType: "badgeScan" | "gateState" | "forced" | "heldOpen";
   timestamp: string;
   gateId: string;
   gateName: string;
@@ -57,8 +62,8 @@ export interface GateEvent {
   badgeId?: string;
   userId?: string;
   userName?: string;
-  result?: 'GRANTED' | 'DENIED' | 'TIMEOUT';
-  direction?: 'IN' | 'OUT';
+  result?: "GRANTED" | "DENIED" | "TIMEOUT";
+  direction?: "IN" | "OUT";
 }
 
 export interface BadgeScan {
@@ -69,8 +74,8 @@ export interface BadgeScan {
   badgeId: string;
   userId: string;
   userName: string;
-  result: 'GRANTED' | 'DENIED';
-  direction: 'IN' | 'OUT';
+  result: "GRANTED" | "DENIED";
+  direction: "IN" | "OUT";
   floor: string;
 }
 
@@ -78,16 +83,16 @@ export interface BadgeScan {
 // Alert Types
 // =============================================================================
 
-export type AlertSeverity = 'info' | 'warning' | 'critical';
-export type AlertType = 
-  | 'DOOR_FORCED_OPEN'
-  | 'DOOR_HELD_OPEN'
-  | 'GEOFENCE_BREACH'
-  | 'TAG_NO_UPDATE'
-  | 'TAG_LOW_BATTERY'
-  | 'UNAUTHORIZED_ACCESS'
-  | 'PAIRING_MISMATCH'
-  | 'SYSTEM_ERROR';
+export type AlertSeverity = "info" | "warning" | "critical";
+export type AlertType =
+  | "DOOR_FORCED_OPEN"
+  | "DOOR_HELD_OPEN"
+  | "GEOFENCE_BREACH"
+  | "TAG_NO_UPDATE"
+  | "TAG_LOW_BATTERY"
+  | "UNAUTHORIZED_ACCESS"
+  | "PAIRING_MISMATCH"
+  | "SYSTEM_ERROR";
 
 export interface Alert {
   id: string;
@@ -95,7 +100,7 @@ export interface Alert {
   type: AlertType;
   severity: AlertSeverity;
   timestamp: string;
-  entityType: 'gate' | 'tag' | 'zone' | 'system';
+  entityType: "gate" | "tag" | "zone" | "system";
   entityId: string;
   tagId?: string;
   message: string;
@@ -114,7 +119,7 @@ export interface Zone {
   id: string;
   name: string;
   floor: string;
-  type: 'authorized' | 'restricted' | 'exit' | 'entrance';
+  type: "authorized" | "restricted" | "exit" | "entrance";
   polygon: { x: number; y: number }[];
   color: string;
 }
@@ -123,7 +128,7 @@ export interface Geofence {
   id: string;
   name: string;
   zoneId: string;
-  ruleType: 'enter' | 'exit' | 'dwell';
+  ruleType: "enter" | "exit" | "dwell";
   tagFilter?: string[];
   alertSeverity: AlertSeverity;
   enabled: boolean;
@@ -142,7 +147,7 @@ export interface Camera {
   floor: string;
   streamUrl: string;
   thumbnailUrl: string;
-  status: 'online' | 'offline' | 'error';
+  status: "online" | "offline" | "error";
 }
 
 // =============================================================================
@@ -168,7 +173,7 @@ export interface Floorplan {
 export interface DashboardFilters {
   floor: string;
   zone?: string;
-  assetType?: RTLSTag['assetType'];
+  assetType?: RTLSTag["assetType"];
   alertSeverity?: AlertSeverity;
   timeRange: {
     from: Date;
@@ -205,7 +210,12 @@ export interface APIError {
 // WebSocket Types
 // =============================================================================
 
-export type WSEventType = 'initial' | 'position' | 'event' | 'alert' | 'heartbeat';
+export type WSEventType =
+  | "initial"
+  | "position"
+  | "event"
+  | "alert"
+  | "heartbeat";
 
 export interface WSMessage {
   type: WSEventType;

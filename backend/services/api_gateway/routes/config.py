@@ -5,7 +5,7 @@ Provides endpoints for reading and updating dynamic system settings.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -31,21 +31,21 @@ class ConfigResponse(BaseModel):
     key: str
     value: Any
     type: str
-    description: Optional[str]
+    description: str | None
     is_public: bool
     updated_at: datetime
-    updated_by: Optional[UUID]
+    updated_by: UUID | None
 
     class Config:
         from_attributes = True
 
     @validator("value", pre=True)
-    def parse_value(cls, v, values):
+    def parse_value(self, v, values):
         """Parse value based on type if it's a string."""
         if not isinstance(v, str):
             return v
 
-        config_type = values.data.get("type") if hasattr(values, "data") else None
+        # values.data.get("type") if hasattr(values, "data") else None
         # Note: In a real Pydantic validator context, accessing other fields is tricky
         # simpler to return string and let frontend handle parsing or do it in the endpoint
         return v
@@ -55,7 +55,7 @@ class ConfigUpdate(BaseModel):
     """Request model for updating a configuration."""
 
     value: Any
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ConfigCreate(ConfigUpdate):
@@ -75,9 +75,7 @@ class ConfigCreate(ConfigUpdate):
 async def list_config(
     public_only: bool = False,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[
-        CurrentUser
-    ] = None,  # Allow unauthenticated if public_only is True
+    current_user: CurrentUser | None = None,  # Allow unauthenticated if public_only is True
 ) -> list[ConfigResponse]:
     """List system configurations."""
     if not public_only and not current_user:
@@ -89,7 +87,7 @@ async def list_config(
     query = select(SystemConfig).order_by(SystemConfig.key)
 
     if public_only:
-        query = query.where(SystemConfig.is_public == True)
+        query = query.where(SystemConfig.is_public.is_(True))
 
     result = await db.execute(query)
     configs = result.scalars().all()
@@ -101,12 +99,12 @@ async def list_config(
         if cfg.type == ConfigType.INTEGER:
             try:
                 val = int(val)
-            except:
+            except Exception:
                 pass
         elif cfg.type == ConfigType.FLOAT:
             try:
                 val = float(val)
-            except:
+            except Exception:
                 pass
         elif cfg.type == ConfigType.BOOLEAN:
             val = val.lower() == "true"
@@ -146,12 +144,12 @@ async def get_config(
     if config.type == ConfigType.INTEGER:
         try:
             val = int(val)
-        except:
+        except Exception:
             pass
     elif config.type == ConfigType.FLOAT:
         try:
             val = float(val)
-        except:
+        except Exception:
             pass
     elif config.type == ConfigType.BOOLEAN:
         val = val.lower() == "true"
@@ -199,12 +197,12 @@ async def update_config(
     if config.type == ConfigType.INTEGER:
         try:
             val = int(val)
-        except:
+        except Exception:
             pass
     elif config.type == ConfigType.FLOAT:
         try:
             val = float(val)
-        except:
+        except Exception:
             pass
     elif config.type == ConfigType.BOOLEAN:
         val = val.lower() == "true"
@@ -258,12 +256,12 @@ async def create_config(
     if config.type == ConfigType.INTEGER:
         try:
             val = int(val)
-        except:
+        except Exception:
             pass
     elif config.type == ConfigType.FLOAT:
         try:
             val = float(val)
-        except:
+        except Exception:
             pass
     elif config.type == ConfigType.BOOLEAN:
         val = val.lower() == "true"

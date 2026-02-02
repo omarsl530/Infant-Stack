@@ -1,13 +1,11 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from database.orm_models.models import User
 from database.orm_models.roles import Role as RoleModel
@@ -15,7 +13,6 @@ from shared_libraries.auth import (
     CurrentUser,
     Permissions,
     require_admin,
-    require_permission,
 )
 from shared_libraries.database import get_db
 from shared_libraries.logging import get_logger
@@ -33,8 +30,8 @@ router = APIRouter()
 
 class RoleBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=50, description="Unique role name")
-    description: Optional[str] = Field(None, max_length=255)
-    permissions: Dict[str, List[str]] = Field(
+    description: str | None = Field(None, max_length=255)
+    permissions: dict[str, list[str]] = Field(
         default_factory=dict,
         description="JSON mapping of resources to actions, e.g. {'user': ['read', 'write']}",
     )
@@ -45,9 +42,9 @@ class RoleCreate(RoleBase):
 
 
 class RoleUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=50)
-    description: Optional[str] = None
-    permissions: Optional[Dict[str, List[str]]] = None
+    name: str | None = Field(None, min_length=1, max_length=50)
+    description: str | None = None
+    permissions: dict[str, list[str]] | None = None
 
 
 class RoleResponse(RoleBase):
@@ -66,7 +63,7 @@ class RoleResponse(RoleBase):
 # =============================================================================
 
 
-@router.get("/permissions", response_model=List[str])
+@router.get("/permissions", response_model=list[str])
 async def list_available_permissions(
     _current_user: CurrentUser = Depends(require_admin),
 ):
@@ -84,7 +81,7 @@ async def list_available_permissions(
     return sorted(perms)
 
 
-@router.get("", response_model=List[RoleResponse])
+@router.get("", response_model=list[RoleResponse])
 async def list_roles(
     skip: int = 0,
     limit: int = 100,
@@ -166,7 +163,7 @@ async def create_role(
         logger.info("role_created", admin_id=current_user.id, role_name=new_role.name)
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=400, detail="Database integrity error")
+        raise HTTPException(status_code=400, detail="Database integrity error") from None
 
     return RoleResponse(
         id=new_role.id,
@@ -238,7 +235,7 @@ async def update_role(
         logger.info("role_updated", admin_id=current_user.id, role_id=str(role_id))
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
     # Get count
     user_count_query = (

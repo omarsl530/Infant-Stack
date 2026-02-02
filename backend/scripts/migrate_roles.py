@@ -121,7 +121,7 @@ def migrate():
             for name, r_id in role_map.items():
                 # Cast role to text to compare
                 stmt = text(
-                    f"UPDATE users SET role_id = :rid WHERE CAST(role AS TEXT) = :name"
+                    "UPDATE users SET role_id = :rid WHERE CAST(role AS TEXT) = :name"
                 )
                 result = conn.execute(stmt, {"rid": r_id, "name": name})
                 logger.info(f"Updated {result.rowcount} users to role {name}")

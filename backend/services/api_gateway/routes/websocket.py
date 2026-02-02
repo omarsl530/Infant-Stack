@@ -7,14 +7,11 @@ Provides WebSocket connections for RTLS positions, gate events, and alerts.
 import asyncio
 import json
 from datetime import datetime
-from typing import Optional, Set
-from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_models.models import Alert, Gate, GateEvent, RTLSPosition
+from database.orm_models.models import Alert, Gate, RTLSPosition
 from shared_libraries.database import get_db
 from shared_libraries.logging import get_logger
 
@@ -32,9 +29,9 @@ class ConnectionManager:
 
     def __init__(self):
         # Connections grouped by channel
-        self.position_connections: Set[WebSocket] = set()
-        self.gate_connections: Set[WebSocket] = set()
-        self.alert_connections: Set[WebSocket] = set()
+        self.position_connections: set[WebSocket] = set()
+        self.gate_connections: set[WebSocket] = set()
+        self.alert_connections: set[WebSocket] = set()
 
     async def connect_positions(self, websocket: WebSocket):
         await websocket.accept()
@@ -182,7 +179,7 @@ def serialize_alert(alert: Alert) -> dict:
 @router.websocket("/positions/live")
 async def websocket_positions(
     websocket: WebSocket,
-    floor: Optional[str] = Query(None),
+    floor: str | None = Query(None),
 ):
     """
     WebSocket endpoint for streaming live RTLS positions.
@@ -222,7 +219,7 @@ async def websocket_positions(
                 if data == "ping":
                     await websocket.send_text("pong")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Send heartbeat
                 await websocket.send_text(
                     json.dumps(
@@ -271,7 +268,7 @@ async def websocket_gate_events(websocket: WebSocket):
                 if data == "ping":
                     await websocket.send_text("pong")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await websocket.send_text(
                     json.dumps(
                         {
@@ -302,7 +299,7 @@ async def websocket_alerts(websocket: WebSocket):
         async for db in get_db():
             result = await db.execute(
                 select(Alert)
-                .where(Alert.acknowledged == False)
+                .where(Alert.acknowledged.is_(False))
                 .order_by(Alert.created_at.desc())
                 .limit(50)
             )
@@ -324,7 +321,7 @@ async def websocket_alerts(websocket: WebSocket):
                 if data == "ping":
                     await websocket.send_text("pong")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await websocket.send_text(
                     json.dumps(
                         {

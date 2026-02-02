@@ -1,6 +1,11 @@
-import { useState, useEffect } from 'react';
-import { PlayIcon, PauseIcon, ForwardIcon, BackwardIcon } from '@heroicons/react/24/solid';
-import { ArrowPathIcon, SignalIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from "react";
+import {
+  PlayIcon,
+  PauseIcon,
+  ForwardIcon,
+  BackwardIcon,
+} from "@heroicons/react/24/solid";
+import { ArrowPathIcon, SignalIcon } from "@heroicons/react/24/outline";
 
 interface TimelineScrubberProps {
   isLive: boolean;
@@ -18,24 +23,24 @@ interface TimelineScrubberProps {
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
   });
 }
 
 // Helper to format Date for datetime-local input
 const toLocalISO = (date: Date) => {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
 export function TimelineScrubber({
@@ -56,7 +61,8 @@ export function TimelineScrubber({
   const [dragPosition, setDragPosition] = useState(0);
 
   const totalDuration = endTime.getTime() - startTime.getTime();
-  const currentProgress = ((currentTime.getTime() - startTime.getTime()) / totalDuration) * 100;
+  const currentProgress =
+    ((currentTime.getTime() - startTime.getTime()) / totalDuration) * 100;
 
   const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -67,34 +73,37 @@ export function TimelineScrubber({
 
   const handleMouseDown = (_e: React.MouseEvent) => {
     setIsDragging(true);
-    document.body.style.cursor = 'grabbing';
+    document.body.style.cursor = "grabbing";
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
-    const track = document.querySelector('.timeline-track') as HTMLElement;
+    const track = document.querySelector(".timeline-track") as HTMLElement;
     if (!track) return;
-    
+
     const rect = track.getBoundingClientRect();
-    const position = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const position = Math.max(
+      0,
+      Math.min(1, (e.clientX - rect.left) / rect.width),
+    );
     setDragPosition(position * 100);
-    
+
     const newTime = new Date(startTime.getTime() + position * totalDuration);
     onSeek(newTime);
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    document.body.style.cursor = '';
+    document.body.style.cursor = "";
   };
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
       };
     }
   }, [isDragging]);
@@ -106,33 +115,33 @@ export function TimelineScrubber({
       <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
         {/* Left: Time Controls */}
         <div className="flex items-center gap-4">
-            <div className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">Range Start</span>
-                <input 
-                    type="datetime-local"
-                    className="bg-slate-800 border-none rounded text-xs text-slate-300 py-1"
-                    value={toLocalISO(startTime)}
-                    onChange={(e) => {
-                        if (onRangeChange && e.target.value) {
-                            onRangeChange(new Date(e.target.value), endTime);
-                        }
-                    }}
-                />
-            </div>
-            <span className="text-slate-500">to</span>
-            <div className="flex flex-col gap-1">
-                <span className="text-xs text-slate-400">Range End</span>
-                <input 
-                    type="datetime-local"
-                    className="bg-slate-800 border-none rounded text-xs text-slate-300 py-1"
-                    value={toLocalISO(endTime)}
-                    onChange={(e) => {
-                        if (onRangeChange && e.target.value) {
-                            onRangeChange(startTime, new Date(e.target.value));
-                        }
-                    }}
-                />
-            </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400">Range Start</span>
+            <input
+              type="datetime-local"
+              className="bg-slate-800 border-none rounded text-xs text-slate-300 py-1"
+              value={toLocalISO(startTime)}
+              onChange={(e) => {
+                if (onRangeChange && e.target.value) {
+                  onRangeChange(new Date(e.target.value), endTime);
+                }
+              }}
+            />
+          </div>
+          <span className="text-slate-500">to</span>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400">Range End</span>
+            <input
+              type="datetime-local"
+              className="bg-slate-800 border-none rounded text-xs text-slate-300 py-1"
+              value={toLocalISO(endTime)}
+              onChange={(e) => {
+                if (onRangeChange && e.target.value) {
+                  onRangeChange(startTime, new Date(e.target.value));
+                }
+              }}
+            />
+          </div>
         </div>
 
         {/* Center: Controls */}
@@ -191,8 +200,8 @@ export function TimelineScrubber({
             onClick={onToggleLive}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
               isLive
-                ? 'bg-red-600 text-white'
-                : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                ? "bg-red-600 text-white"
+                : "bg-slate-700/50 text-slate-300 hover:bg-slate-600/50"
             }`}
           >
             {isLive ? (
@@ -221,7 +230,7 @@ export function TimelineScrubber({
       </div>
 
       {/* Timeline track */}
-      <div 
+      <div
         className="timeline-track relative cursor-pointer"
         onClick={handleTrackClick}
       >

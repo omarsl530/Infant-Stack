@@ -1,7 +1,4 @@
-import json
 import time
-from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Request
@@ -50,7 +47,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         ip = request.client.host if request.client else None
 
         # Extract User ID from Token
-        user_id: Optional[UUID] = None
+        user_id: UUID | None = None
         user_details = {}
 
         try:
@@ -88,11 +85,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
     async def _log_to_db(
         self,
-        user_id: Optional[UUID],
+        user_id: UUID | None,
         action: str,
         resource_type: str,
         resource_id: str,
-        ip: Optional[str],
+        ip: str | None,
         status_code: int,
         duration_ms: int,
         extra_details: dict,

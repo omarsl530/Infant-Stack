@@ -5,9 +5,9 @@
  * Optionally checks for specific roles before allowing access.
  */
 
-import React, { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import React, { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -53,12 +53,14 @@ export default function ProtectedRoute({
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/10 max-w-md text-center">
             <div className="text-red-400 text-6xl mb-4">🚫</div>
-            <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Access Denied
+            </h1>
             <p className="text-gray-400 mb-6">
               You don't have permission to access this page.
             </p>
             <p className="text-gray-500 text-sm mb-4">
-              Required roles: {requiredRoles.join(', ')}
+              Required roles: {requiredRoles.join(", ")}
             </p>
             <button
               onClick={() => window.history.back()}

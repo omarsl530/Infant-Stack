@@ -3,15 +3,14 @@ Alert management endpoints.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_models.models import Alert, AlertSeverity
+from database.orm_models.models import Alert
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from shared_libraries.database import get_db
 
@@ -25,7 +24,7 @@ class AlertResponse(BaseModel):
     alert_type: str
     severity: str
     message: str
-    tag_id: Optional[str]
+    tag_id: str | None
     acknowledged: bool
     created_at: datetime
 
@@ -42,8 +41,8 @@ class AlertList(BaseModel):
 
 @router.get("/", response_model=AlertList)
 async def list_alerts(
-    acknowledged: Optional[bool] = False,
-    severity: Optional[str] = None,
+    acknowledged: bool | None = False,
+    severity: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> AlertList:

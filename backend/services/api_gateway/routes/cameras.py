@@ -5,7 +5,6 @@ Provides CRUD operations for cameras and snapshot retrieval.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -32,10 +31,10 @@ class CameraResponse(BaseModel):
     camera_id: str
     name: str
     floor: str
-    zone: Optional[str] = None
-    gate_id: Optional[str] = None
+    zone: str | None = None
+    gate_id: str | None = None
     stream_url: str
-    thumbnail_url: Optional[str] = None
+    thumbnail_url: str | None = None
     status: str
     created_at: datetime
 
@@ -56,21 +55,21 @@ class CameraCreate(BaseModel):
     camera_id: str = Field(..., min_length=1, max_length=50)
     name: str = Field(..., min_length=1, max_length=100)
     floor: str = Field(..., min_length=1, max_length=20)
-    zone: Optional[str] = Field(None, max_length=50)
-    gate_id: Optional[str] = Field(None, max_length=50)
+    zone: str | None = Field(None, max_length=50)
+    gate_id: str | None = Field(None, max_length=50)
     stream_url: str = Field(..., min_length=1, max_length=500)
-    thumbnail_url: Optional[str] = Field(None, max_length=500)
+    thumbnail_url: str | None = Field(None, max_length=500)
 
 
 class CameraUpdate(BaseModel):
     """Request model for updating a camera."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    zone: Optional[str] = Field(None, max_length=50)
-    gate_id: Optional[str] = None
-    stream_url: Optional[str] = Field(None, max_length=500)
-    thumbnail_url: Optional[str] = Field(None, max_length=500)
-    status: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    zone: str | None = Field(None, max_length=50)
+    gate_id: str | None = None
+    stream_url: str | None = Field(None, max_length=500)
+    thumbnail_url: str | None = Field(None, max_length=500)
+    status: str | None = None
 
 
 # =============================================================================
@@ -80,9 +79,9 @@ class CameraUpdate(BaseModel):
 
 @router.get("/", response_model=CameraList)
 async def list_cameras(
-    floor: Optional[str] = None,
-    status: Optional[str] = None,
-    gate_id: Optional[str] = None,
+    floor: str | None = None,
+    status: str | None = None,
+    gate_id: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> CameraList:

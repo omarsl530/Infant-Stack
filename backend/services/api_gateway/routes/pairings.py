@@ -3,7 +3,6 @@ Pairing endpoints for infant-mother tag management.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -42,7 +41,7 @@ class PairingResponse(BaseModel):
     mother_name: str
     status: str
     paired_at: datetime
-    discharged_at: Optional[datetime] = None
+    discharged_at: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -64,7 +63,7 @@ class PairingList(BaseModel):
 
 @router.get("/", response_model=PairingList)
 async def list_pairings(
-    status: Optional[str] = "active",
+    status: str | None = "active",
     page: int = 1,
     size: int = 20,
     current_user: CurrentUser = Depends(require_user_or_admin),

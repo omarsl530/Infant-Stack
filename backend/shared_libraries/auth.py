@@ -5,15 +5,13 @@ Provides JWT verification via JWKS and role-based access control for FastAPI.
 Uses Keycloak as the Identity Provider (IdP) with OpenID Connect.
 """
 
-from datetime import datetime, timezone
-from typing import Any, List, Optional
-from uuid import UUID
+from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwk, jwt
-from jose.exceptions import JWKError
+from jose import jwk, jwt
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -39,34 +37,34 @@ class TokenPayload(BaseModel):
     """Validated JWT token payload."""
 
     sub: str  # Subject (user ID)
-    email: Optional[str] = None
-    preferred_username: Optional[str] = None
-    given_name: Optional[str] = None
-    family_name: Optional[str] = None
-    realm_access: Optional[dict] = None
-    resource_access: Optional[dict] = None
+    email: str | None = None
+    preferred_username: str | None = None
+    given_name: str | None = None
+    family_name: str | None = None
+    realm_access: dict | None = None
+    resource_access: dict | None = None
     exp: int
     iat: int
     iss: str
-    aud: Optional[Any] = None
+    aud: Any | None = None
 
 
 class CurrentUser(BaseModel):
     """Represents the authenticated user."""
 
     id: str  # Keycloak user ID (sub claim)
-    email: Optional[str] = None
-    username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    roles: List[str] = []
-    permissions: List[str] = []
+    email: str | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    roles: list[str] = []
+    permissions: list[str] = []
 
     def has_role(self, role: str) -> bool:
         """Check if user has a specific role."""
         return role in self.roles
 
-    def has_any_role(self, roles: List[str]) -> bool:
+    def has_any_role(self, roles: list[str]) -> bool:
         """Check if user has any of the specified roles."""
         return any(role in self.roles for role in roles)
 
@@ -95,9 +93,9 @@ class JWKSClient:
         self.jwks_url = jwks_url
         self.cache_ttl = cache_ttl
         self._keys: dict = {}
-        self._last_fetch: Optional[datetime] = None
+        self._last_fetch: datetime | None = None
 
-    async def get_key(self, kid: str) -> Optional[dict]:
+    async def get_key(self, kid: str) -> dict | None:
         if self._should_refresh() or kid not in self._keys:
             await self._fetch_keys()
         return self._keys.get(kid)
@@ -105,7 +103,7 @@ class JWKSClient:
     def _should_refresh(self) -> bool:
         if self._last_fetch is None:
             return True
-        elapsed = (datetime.now(timezone.utc) - self._last_fetch).total_seconds()
+        elapsed = (datetime.now(UTC) - self._last_fetch).total_seconds()
         return elapsed > self.cache_ttl
 
     async def _fetch_keys(self) -> None:
@@ -115,7 +113,7 @@ class JWKSClient:
                 response.raise_for_status()
                 jwks = response.json()
             self._keys = {key["kid"]: key for key in jwks.get("keys", [])}
-            self._last_fetch = datetime.now(timezone.utc)
+            self._last_fetch = datetime.now(UTC)
             logger.debug("jwks_refreshed", key_count=len(self._keys))
         except Exception as e:
             logger.error("jwks_fetch_failed", error=str(e))
@@ -123,10 +121,10 @@ class JWKSClient:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Unable to fetch authentication keys",
-                )
+                ) from None
 
 
-_jwks_client: Optional[JWKSClient] = None
+_jwks_client: JWKSClient | None = None
 
 
 def get_jwks_client() -> JWKSClient:
@@ -136,7 +134,7 @@ def get_jwks_client() -> JWKSClient:
     return _jwks_client
 
 
-def extract_roles(payload: TokenPayload) -> List[str]:
+def extract_roles(payload: TokenPayload) -> list[str]:
     """Extract roles from both realm and resource access claims."""
     roles = set()
     if payload.realm_access:
@@ -198,7 +196,7 @@ async def verify_token(token: str) -> TokenPayload:
         return TokenPayload(**payload_dict)
     except Exception as e:
         logger.warning("token_verification_failed", error=str(e))
-        raise credentials_exception
+        raise credentials_exception from None
 
 
 class Permissions:
@@ -319,7 +317,7 @@ async def get_current_user(
     )
 
 
-def require_roles(required_roles: List[str], require_all: bool = False):
+def require_roles(required_roles: list[str], require_all: bool = False):
     """Dependency requiring specific roles."""
 
     async def role_checker(
@@ -374,10 +372,10 @@ bearer_scheme_optional = HTTPBearer(auto_error=False)
 
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(
+    credentials: HTTPAuthorizationCredentials | None = Security(
         bearer_scheme_optional
     ),
-) -> Optional[CurrentUser]:
+) -> CurrentUser | None:
     if not credentials:
         return None
     try:
@@ -385,7 +383,7 @@ async def get_current_user_optional(
 
         async with async_session_factory() as db:
             token = credentials.credentials
-            payload = await verify_token(token)
+            await verify_token(token)
             return await get_current_user(credentials, db)
     except Exception:
         return None

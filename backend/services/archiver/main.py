@@ -3,12 +3,11 @@ import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Type
 
 import structlog
 from apscheduler.schedulers.blocking import BlockingScheduler
-from sqlalchemy import and_, delete, func, select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # Import models
 from database.orm_models.models import MovementLog, RTLSPosition
@@ -44,7 +43,7 @@ def serialize_record(record) -> dict:
     return data
 
 
-async def archive_model(model: Type, date_field, model_name: str):
+async def archive_model(model: type, date_field, model_name: str):
     """
     Archives records older than RETENTION_DAYS to JSONL and deletes them.
     """

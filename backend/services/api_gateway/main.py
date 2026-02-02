@@ -5,8 +5,8 @@ Provides routing, authentication, and request handling for the Infant-Stack syst
 """
 
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,9 +15,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 sys.path.insert(0, str(__file__).rsplit("/", 3)[0])
 
-import asyncio
 
-from services.alert_escalation import start_alert_escalation_worker
 from services.api_gateway.routes import (
     alerts,
     audit,

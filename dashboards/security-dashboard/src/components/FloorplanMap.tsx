@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import type { RTLSPosition, Zone, Gate, Floorplan, Alert } from '../types';
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import type { RTLSPosition, Zone, Gate, Floorplan, Alert } from "../types";
 
 interface FloorplanMapProps {
   floorplan: Floorplan | null;
@@ -55,11 +55,13 @@ export function FloorplanMap({
   const worldToScreen = useCallback(
     (x: number, y: number) => {
       if (!floorplan) return { x: 0, y: 0 };
-      const screenX = (x - floorplan.originX) * floorplan.scale * scale + offset.x;
-      const screenY = (y - floorplan.originY) * floorplan.scale * scale + offset.y;
+      const screenX =
+        (x - floorplan.originX) * floorplan.scale * scale + offset.x;
+      const screenY =
+        (y - floorplan.originY) * floorplan.scale * scale + offset.y;
       return { x: screenX, y: screenY };
     },
-    [floorplan, scale, offset]
+    [floorplan, scale, offset],
   );
 
   // Handle mouse wheel zoom
@@ -70,11 +72,14 @@ export function FloorplanMap({
   }, []);
 
   // Handle pan start
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-  }, [offset]);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return;
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+    },
+    [offset],
+  );
 
   // Handle pan move
   const handleMouseMove = useCallback(
@@ -85,7 +90,7 @@ export function FloorplanMap({
         y: e.clientY - dragStart.y,
       });
     },
-    [isDragging, dragStart]
+    [isDragging, dragStart],
   );
 
   // Handle pan end
@@ -96,40 +101,49 @@ export function FloorplanMap({
   // --- Touch Support ---
   const lastTouchDistance = useRef<number | null>(null);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      setIsDragging(true);
-      const touch = e.touches[0];
-      setDragStart({ x: touch.clientX - offset.x, y: touch.clientY - offset.y });
-      lastTouchDistance.current = null;
-    } else if (e.touches.length === 2) {
-      setIsDragging(false); // Disable panning during pinch
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      lastTouchDistance.current = dist;
-    }
-  }, [offset]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1) {
+        setIsDragging(true);
+        const touch = e.touches[0];
+        setDragStart({
+          x: touch.clientX - offset.x,
+          y: touch.clientY - offset.y,
+        });
+        lastTouchDistance.current = null;
+      } else if (e.touches.length === 2) {
+        setIsDragging(false); // Disable panning during pinch
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        lastTouchDistance.current = dist;
+      }
+    },
+    [offset],
+  );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1 && isDragging) {
-      const touch = e.touches[0];
-      setOffset({
-        x: touch.clientX - dragStart.x,
-        y: touch.clientY - dragStart.y,
-      });
-    } else if (e.touches.length === 2 && lastTouchDistance.current !== null) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      
-      const delta = dist / lastTouchDistance.current;
-      setScale((prev) => Math.min(Math.max(prev * delta, 0.5), 4));
-      lastTouchDistance.current = dist;
-    }
-  }, [isDragging, dragStart]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1 && isDragging) {
+        const touch = e.touches[0];
+        setOffset({
+          x: touch.clientX - dragStart.x,
+          y: touch.clientY - dragStart.y,
+        });
+      } else if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+
+        const delta = dist / lastTouchDistance.current;
+        setScale((prev) => Math.min(Math.max(prev * delta, 0.5), 4));
+        lastTouchDistance.current = dist;
+      }
+    },
+    [isDragging, dragStart],
+  );
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -144,16 +158,16 @@ export function FloorplanMap({
 
   // Tag marker color based on asset type and status
   const getTagColor = useCallback((position: RTLSPosition) => {
-    if (position.batteryPct < 20) return 'bg-amber-500';
+    if (position.batteryPct < 20) return "bg-amber-500";
     switch (position.assetType) {
-      case 'infant':
-        return 'bg-cyan-500';
-      case 'mother':
-        return 'bg-pink-500';
-      case 'staff':
-        return 'bg-purple-500';
+      case "infant":
+        return "bg-cyan-500";
+      case "mother":
+        return "bg-pink-500";
+      case "staff":
+        return "bg-purple-500";
       default:
-        return 'bg-slate-400';
+        return "bg-slate-400";
     }
   }, []);
 
@@ -165,14 +179,14 @@ export function FloorplanMap({
           const screen = worldToScreen(p.x, p.y);
           return `${screen.x},${screen.y}`;
         })
-        .join(' ');
+        .join(" ");
 
       const zoneClass =
-        zone.type === 'restricted'
-          ? 'zone-restricted'
-          : zone.type === 'exit'
-          ? 'zone-exit'
-          : 'zone-authorized';
+        zone.type === "restricted"
+          ? "zone-restricted"
+          : zone.type === "exit"
+            ? "zone-exit"
+            : "zone-authorized";
 
       return (
         <polygon
@@ -194,11 +208,11 @@ export function FloorplanMap({
       const screen = worldToScreen(x, y);
 
       const stateClass =
-        gate.state === 'FORCED_OPEN'
-          ? 'gate-forced'
-          : gate.state === 'OPEN' || gate.state === 'HELD_OPEN'
-          ? 'gate-open'
-          : 'gate-closed';
+        gate.state === "FORCED_OPEN"
+          ? "gate-forced"
+          : gate.state === "OPEN" || gate.state === "HELD_OPEN"
+            ? "gate-open"
+            : "gate-closed";
 
       return (
         <div
@@ -208,7 +222,11 @@ export function FloorplanMap({
           onClick={() => onGateClick?.(gate)}
           title={`${gate.name}: ${gate.state}`}
         >
-          {gate.state === 'FORCED_OPEN' ? '!' : gate.state === 'OPEN' ? 'O' : 'C'}
+          {gate.state === "FORCED_OPEN"
+            ? "!"
+            : gate.state === "OPEN"
+              ? "O"
+              : "C"}
         </div>
       );
     });
@@ -220,25 +238,31 @@ export function FloorplanMap({
       const screen = worldToScreen(position.x, position.y);
       const isSelected = selectedTagId === position.tagId;
       const tagColor = getTagColor(position);
-      
+
       // Check for active alerts for this tag
-      const hasActiveAlert = alerts.some(a => a.tagId === position.tagId && !a.acknowledged);
-      const alertClass = hasActiveAlert ? 'animate-pulse ring-2 ring-red-500 ring-offset-2' : '';
+      const hasActiveAlert = alerts.some(
+        (a) => a.tagId === position.tagId && !a.acknowledged,
+      );
+      const alertClass = hasActiveAlert
+        ? "animate-pulse ring-2 ring-red-500 ring-offset-2"
+        : "";
 
       return (
         <div
           key={position.tagId}
           className={`tag-marker ${tagColor} cursor-pointer hover:scale-125 transition-transform ${
-            isSelected ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 z-10' : ''
-          } ${position.batteryPct < 20 ? 'tag-marker-alert' : ''} ${alertClass}`}
+            isSelected
+              ? "ring-2 ring-white ring-offset-2 ring-offset-slate-900 z-10"
+              : ""
+          } ${position.batteryPct < 20 ? "tag-marker-alert" : ""} ${alertClass}`}
           style={{
             left: screen.x,
             top: screen.y,
-            width: isSelected || hasActiveAlert ? '20px' : '14px',
-            height: isSelected || hasActiveAlert ? '20px' : '14px',
+            width: isSelected || hasActiveAlert ? "20px" : "14px",
+            height: isSelected || hasActiveAlert ? "20px" : "14px",
           }}
           onClick={() => onTagClick?.(position)}
-          title={`${position.tagId} (${position.assetType})${hasActiveAlert ? ' - ALERT' : ''}`}
+          title={`${position.tagId} (${position.assetType})${hasActiveAlert ? " - ALERT" : ""}`}
         >
           {isSelected && (
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 px-2 py-1 rounded text-xs whitespace-nowrap">
@@ -248,7 +272,14 @@ export function FloorplanMap({
         </div>
       );
     });
-  }, [positions, worldToScreen, selectedTagId, getTagColor, onTagClick, alerts]);
+  }, [
+    positions,
+    worldToScreen,
+    selectedTagId,
+    getTagColor,
+    onTagClick,
+    alerts,
+  ]);
 
   // Render heatmap overlay (simplified)
   const heatmapOverlay = useMemo(() => {
@@ -269,7 +300,7 @@ export function FloorplanMap({
     const maxDensity = Math.max(...Object.values(density));
 
     return Object.entries(density).map(([key, count]) => {
-      const [cellX, cellY] = key.split(',').map(Number);
+      const [cellX, cellY] = key.split(",").map(Number);
       const opacity = (count / maxDensity) * 0.5;
       return (
         <div
@@ -281,7 +312,7 @@ export function FloorplanMap({
             width: gridSize * 2,
             height: gridSize * 2,
             opacity,
-            transform: 'translate(-50%, -50%)',
+            transform: "translate(-50%, -50%)",
           }}
         />
       );
@@ -311,7 +342,7 @@ export function FloorplanMap({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+      style={{ cursor: isDragging ? "grabbing" : "grab", touchAction: "none" }}
     >
       {/* Floorplan Image */}
       <img
@@ -320,7 +351,7 @@ export function FloorplanMap({
         className="absolute pointer-events-none"
         style={{
           transform: `scale(${scale})`,
-          transformOrigin: '0 0',
+          transformOrigin: "0 0",
           left: offset.x,
           top: offset.y,
         }}
@@ -330,7 +361,7 @@ export function FloorplanMap({
       {/* SVG Overlay for Zones */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ overflow: 'visible' }}
+        style={{ overflow: "visible" }}
       >
         <g className="pointer-events-auto">{renderedZones}</g>
       </svg>
@@ -398,7 +429,9 @@ export function FloorplanMap({
 
       {/* Connection Status */}
       <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-800/90 rounded-lg px-3 py-2 text-xs">
-        <div className={`w-2 h-2 rounded-full ${positions.length > 0 ? 'status-online' : 'status-offline'}`} />
+        <div
+          className={`w-2 h-2 rounded-full ${positions.length > 0 ? "status-online" : "status-offline"}`}
+        />
         <span>{positions.length} tags</span>
       </div>
     </div>

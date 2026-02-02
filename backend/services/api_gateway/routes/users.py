@@ -5,12 +5,11 @@ Provides CRUD operations for users, role assignment, and password management.
 """
 
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_models.models import AuditLog, User
@@ -46,11 +45,11 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """User update request."""
 
-    email: Optional[EmailStr] = None
-    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    role: Optional[str] = None
-    is_active: Optional[bool] = None
+    email: EmailStr | None = None
+    first_name: str | None = Field(None, min_length=1, max_length=100)
+    last_name: str | None = Field(None, min_length=1, max_length=100)
+    role: str | None = None
+    is_active: bool | None = None
 
 
 class UserResponse(BaseModel):
@@ -63,7 +62,7 @@ class UserResponse(BaseModel):
     role: str  # Returns role name
     is_active: bool
     created_at: datetime
-    last_login: Optional[datetime]
+    last_login: datetime | None
 
     class Config:
         from_attributes = True
@@ -90,7 +89,7 @@ class UserResponse(BaseModel):
 class UserListResponse(BaseModel):
     """Paginated user list response."""
 
-    users: List[UserResponse]
+    users: list[UserResponse]
     total: int
     page: int
     limit: int
@@ -156,9 +155,9 @@ async def log_audit(
 async def list_users(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    role: Optional[str] = Query(None),
-    is_active: Optional[bool] = Query(None),
-    search: Optional[str] = Query(None, description="Search by name or email"),
+    role: str | None = Query(None),
+    is_active: bool | None = Query(None),
+    search: str | None = Query(None, description="Search by name or email"),
     db: AsyncSession = Depends(get_db),
     _current_user: User = Depends(require_admin),
 ):

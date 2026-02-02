@@ -93,7 +93,7 @@ class Settings(BaseSettings):
 
         # Check if running inside Docker (common indicators)
         if os.path.exists("/.dockerenv") or os.environ.get("DOCKER_CONTAINER"):
-            return f"http://keycloak:8080"
+            return "http://keycloak:8080"
         return self.keycloak_url
 
     @property

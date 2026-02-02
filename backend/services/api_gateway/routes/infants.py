@@ -3,16 +3,15 @@ Infant management endpoints.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
 
-from database.orm_models.models import Infant, Pairing, TagStatus
+from database.orm_models.models import Infant, TagStatus
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from shared_libraries.database import get_db
 
@@ -26,9 +25,9 @@ class InfantCreate(BaseModel):
     tag_id: str
     name: str  # Combined name for simplicity
     ward: str
-    room: Optional[str] = None
-    date_of_birth: Optional[datetime] = None
-    weight: Optional[str] = None
+    room: str | None = None
+    date_of_birth: datetime | None = None
+    weight: str | None = None
 
 
 class InfantResponse(BaseModel):
@@ -38,14 +37,14 @@ class InfantResponse(BaseModel):
     tag_id: str
     name: str
     ward: str
-    room: Optional[str]
+    room: str | None
     tag_status: str
-    date_of_birth: Optional[datetime] = None
-    weight: Optional[str] = None
+    date_of_birth: datetime | None = None
+    weight: str | None = None
     created_at: datetime
     # Pairing info
-    mother_name: Optional[str] = None
-    mother_tag_id: Optional[str] = None
+    mother_name: str | None = None
+    mother_tag_id: str | None = None
 
     class Config:
         from_attributes = True
@@ -60,8 +59,8 @@ class InfantList(BaseModel):
 
 @router.get("/", response_model=InfantList)
 async def list_infants(
-    ward: Optional[str] = None,
-    status: Optional[str] = None,
+    ward: str | None = None,
+    status: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> InfantList:
@@ -145,7 +144,7 @@ async def create_infant(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Infant with tag ID {infant_data.tag_id} or MRN already exists",
-        )
+        ) from None
 
     return InfantResponse(
         id=infant.id,

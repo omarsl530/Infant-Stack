@@ -1,6 +1,6 @@
 // User types
 // Role can be a string now (custom roles)
-export type UserRole = string; 
+export type UserRole = string;
 
 export interface Role {
   id: string;
@@ -80,7 +80,7 @@ export interface AuditLogListResponse {
 
 // Config types
 // Config types
-export type ConfigType = 'string' | 'integer' | 'float' | 'boolean' | 'json';
+export type ConfigType = "string" | "integer" | "float" | "boolean" | "json";
 
 export interface ConfigResponse {
   key: string;
@@ -108,7 +108,7 @@ export interface Zone {
   id: string;
   name: string;
   floor: string;
-  zone_type: 'AUTHORIZED' | 'RESTRICTED' | 'EXIT';
+  zone_type: "AUTHORIZED" | "RESTRICTED" | "EXIT";
   polygon: { x: number; y: number }[];
   color: string | null;
   is_active: boolean;

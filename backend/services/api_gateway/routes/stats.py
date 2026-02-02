@@ -2,19 +2,16 @@
 Dashboard statistics API routes.
 """
 
-from typing import Any, Dict
+from typing import Any
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_models.models import (
     Alert,
-    AlertSeverity,
     Infant,
     Mother,
-    Pairing,
-    PairingStatus,
     TagStatus,
     User,
 )
@@ -24,7 +21,7 @@ from shared_libraries.database import get_db
 router = APIRouter()
 
 
-@router.get("/dashboard", response_model=Dict[str, Any])
+@router.get("/dashboard", response_model=dict[str, Any])
 async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
     _current_user: CurrentUser = Depends(get_current_user),
@@ -38,7 +35,7 @@ async def get_dashboard_stats(
     total_users = total_users_result.scalar() or 0
 
     active_users_result = await db.execute(
-        select(func.count(User.id)).where(User.is_active == True)
+        select(func.count(User.id)).where(User.is_active.is_(True))
     )  # Approximate for sessions? Or use last_login window?
     # Users with recent login? Let's generic to active users for now as sessions are Redis based and harder to query from here easily without Redis client
     # But Header says "Active Sessions". Let's stick to active users count for simplicity or distinct users in audit logs today.
@@ -60,7 +57,7 @@ async def get_dashboard_stats(
     total_active_tags = active_infants + active_mothers
 
     # Alert stats
-    from datetime import datetime, timedelta
+    from datetime import datetime
 
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -71,7 +68,7 @@ async def get_dashboard_stats(
 
     unack_alerts_result = await db.execute(
         select(func.count(Alert.id)).where(
-            Alert.created_at >= today_start, Alert.acknowledged == False
+            Alert.created_at >= today_start, Alert.acknowledged.is_(False)
         )
     )
     unack_alerts = unack_alerts_result.scalar() or 0

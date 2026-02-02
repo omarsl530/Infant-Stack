@@ -5,7 +5,6 @@ Provides CRUD operations for geofence zones and floorplans.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -33,7 +32,7 @@ class ZoneResponse(BaseModel):
     floor: str
     zone_type: str
     polygon: dict  # List of {x, y} points
-    color: Optional[str] = None
+    color: str | None = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -56,17 +55,17 @@ class ZoneCreate(BaseModel):
     floor: str = Field(..., min_length=1, max_length=20)
     zone_type: str = Field(...)  # authorized, restricted, exit
     polygon: dict = Field(...)  # List of {x, y} points
-    color: Optional[str] = Field(None, max_length=20)
+    color: str | None = Field(None, max_length=20)
 
 
 class ZoneUpdate(BaseModel):
     """Request model for updating a zone."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    zone_type: Optional[str] = None
-    polygon: Optional[dict] = None
-    color: Optional[str] = Field(None, max_length=20)
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    zone_type: str | None = None
+    polygon: dict | None = None
+    color: str | None = Field(None, max_length=20)
+    is_active: bool | None = None
 
 
 # =============================================================================
@@ -119,8 +118,8 @@ class FloorplanCreate(BaseModel):
 
 @router.get("/zones", response_model=ZoneList)
 async def list_zones(
-    floor: Optional[str] = None,
-    zone_type: Optional[str] = None,
+    floor: str | None = None,
+    zone_type: str | None = None,
     is_active: bool = True,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),

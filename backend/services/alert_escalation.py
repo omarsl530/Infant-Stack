@@ -8,7 +8,6 @@ import asyncio
 from datetime import datetime, timedelta
 
 from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_models.models import Alert, AlertSeverity, AuditLog
 from shared_libraries.database import async_session_factory
@@ -34,7 +33,7 @@ async def check_for_escalations():
             query = select(Alert).where(
                 and_(
                     Alert.severity == AlertSeverity.CRITICAL,
-                    Alert.acknowledged == False,
+                    Alert.acknowledged.is_(False),
                     Alert.created_at < threshold_time,
                     # Optimization: Maybe filter out already escalated ones if we had a status flag
                     # For now, we'll just log an audit event, so we need to check if we already logged it to avoid spam

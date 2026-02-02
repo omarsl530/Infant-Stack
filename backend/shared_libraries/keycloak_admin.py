@@ -5,7 +5,7 @@ Provides programmatic user management through Keycloak's Admin REST API.
 Uses confidential client credentials to obtain admin access tokens.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -20,15 +20,15 @@ settings = get_settings()
 class KeycloakUser(BaseModel):
     """Keycloak user representation."""
 
-    id: Optional[str] = None
+    id: str | None = None
     username: str
     email: str
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
+    firstName: str | None = None
+    lastName: str | None = None
     enabled: bool = True
     emailVerified: bool = False
-    credentials: Optional[List[Dict[str, Any]]] = None
-    realmRoles: Optional[List[str]] = None
+    credentials: list[dict[str, Any]] | None = None
+    realmRoles: list[str] | None = None
 
 
 class KeycloakAdminClient:
@@ -44,7 +44,7 @@ class KeycloakAdminClient:
         self.realm = settings.keycloak_realm
         self.client_id = settings.keycloak_admin_client_id
         self.client_secret = settings.keycloak_admin_client_secret
-        self._access_token: Optional[str] = None
+        self._access_token: str | None = None
 
     @property
     def admin_api_url(self) -> str:
@@ -92,8 +92,8 @@ class KeycloakAdminClient:
         self,
         method: str,
         endpoint: str,
-        json_data: Optional[Dict] = None,
-        params: Optional[Dict] = None,
+        json_data: dict | None = None,
+        params: dict | None = None,
     ) -> httpx.Response:
         """
         Make authenticated request to Keycloak Admin API.
@@ -132,13 +132,13 @@ class KeycloakAdminClient:
         username: str,
         email: str,
         password: str,
-        first_name: Optional[str] = None,
-        last_name: Optional[str] = None,
-        roles: Optional[List[str]] = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        roles: list[str] | None = None,
         enabled: bool = True,
         email_verified: bool = True,
         temporary_password: bool = False,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Create a new user in Keycloak.
 
@@ -199,7 +199,7 @@ class KeycloakAdminClient:
             )
             return None
 
-    async def get_realm_roles(self) -> List[Dict[str, Any]]:
+    async def get_realm_roles(self) -> list[dict[str, Any]]:
         """
         Get all realm-level roles.
 
@@ -214,7 +214,7 @@ class KeycloakAdminClient:
         logger.error("keycloak_get_roles_failed", status=response.status_code)
         return []
 
-    async def assign_roles(self, user_id: str, role_names: List[str]) -> bool:
+    async def assign_roles(self, user_id: str, role_names: list[str]) -> bool:
         """
         Assign realm roles to a user.
 
@@ -262,7 +262,7 @@ class KeycloakAdminClient:
         )
         return False
 
-    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+    async def get_user_by_username(self, username: str) -> dict[str, Any] | None:
         """
         Find a user by username.
 
@@ -309,7 +309,7 @@ class KeycloakAdminClient:
 
 
 # Singleton instance
-_admin_client: Optional[KeycloakAdminClient] = None
+_admin_client: KeycloakAdminClient | None = None
 
 
 def get_keycloak_admin() -> KeycloakAdminClient:

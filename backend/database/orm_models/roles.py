@@ -1,11 +1,10 @@
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, String, Text
+from sqlalchemy import DateTime, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from database.orm_models.models import Base
 
@@ -19,7 +18,7 @@ class Role(Base):
         PGUUID(as_uuid=True), primary_key=True, default=uuid4
     )
     name: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     permissions: Mapped[dict] = mapped_column(
         JSONB, default=dict
     )  # { "resource": ["read", "write"] }

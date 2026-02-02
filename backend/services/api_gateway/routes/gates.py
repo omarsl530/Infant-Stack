@@ -5,7 +5,6 @@ Provides CRUD operations for security gates and gate events.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -16,8 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.orm_models.models import (
     Gate,
     GateEvent,
-    GateEventResult,
-    GateEventType,
     GateState,
 )
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
@@ -41,7 +38,7 @@ class GateResponse(BaseModel):
     zone: str
     state: str
     last_state_change: datetime
-    camera_id: Optional[str] = None
+    camera_id: str | None = None
     created_at: datetime
 
     class Config:
@@ -62,16 +59,16 @@ class GateCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     floor: str = Field(..., min_length=1, max_length=20)
     zone: str = Field(..., min_length=1, max_length=50)
-    camera_id: Optional[str] = None
+    camera_id: str | None = None
 
 
 class GateUpdate(BaseModel):
     """Request model for updating a gate."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    zone: Optional[str] = Field(None, min_length=1, max_length=50)
-    state: Optional[str] = None
-    camera_id: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    zone: str | None = Field(None, min_length=1, max_length=50)
+    state: str | None = None
+    camera_id: str | None = None
 
 
 class GateEventResponse(BaseModel):
@@ -80,14 +77,14 @@ class GateEventResponse(BaseModel):
     id: UUID
     gate_id: str
     event_type: str
-    state: Optional[str] = None
-    previous_state: Optional[str] = None
-    badge_id: Optional[str] = None
-    user_id: Optional[str] = None
-    user_name: Optional[str] = None
-    result: Optional[str] = None
-    direction: Optional[str] = None
-    duration_ms: Optional[int] = None
+    state: str | None = None
+    previous_state: str | None = None
+    badge_id: str | None = None
+    user_id: str | None = None
+    user_name: str | None = None
+    result: str | None = None
+    direction: str | None = None
+    duration_ms: int | None = None
     timestamp: datetime
 
     class Config:
@@ -109,8 +106,8 @@ class GateEventList(BaseModel):
 
 @router.get("/", response_model=GateList)
 async def list_gates(
-    floor: Optional[str] = None,
-    state: Optional[str] = None,
+    floor: str | None = None,
+    state: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> GateList:
@@ -284,9 +281,9 @@ async def delete_gate(
 @router.get("/{gate_id}/events", response_model=GateEventList)
 async def get_gate_events(
     gate_id: str,
-    from_time: Optional[datetime] = None,
-    to_time: Optional[datetime] = None,
-    event_type: Optional[str] = None,
+    from_time: datetime | None = None,
+    to_time: datetime | None = None,
+    event_type: str | None = None,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -336,7 +333,7 @@ async def get_gate_events(
 @router.get("/events/latest", response_model=GateEventList)
 async def get_latest_events(
     limit: int = Query(50, ge=1, le=100),
-    event_type: Optional[str] = None,
+    event_type: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_user_or_admin),
 ) -> GateEventList:

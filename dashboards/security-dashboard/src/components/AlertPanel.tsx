@@ -1,5 +1,5 @@
-import { XMarkIcon, CheckIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
-import type { Alert, AlertSeverity } from '../types';
+import { XMarkIcon, CheckIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
+import type { Alert, AlertSeverity } from "../types";
 
 interface AlertPanelProps {
   alerts: Alert[];
@@ -10,38 +10,41 @@ interface AlertPanelProps {
   onAlertClick?: (alert: Alert) => void;
 }
 
-const severityConfig: Record<AlertSeverity, { 
-  bg: string; 
-  border: string; 
-  icon: string;
-  label: string;
-}> = {
+const severityConfig: Record<
+  AlertSeverity,
+  {
+    bg: string;
+    border: string;
+    icon: string;
+    label: string;
+  }
+> = {
   critical: {
-    bg: 'alert-critical',
-    border: 'border-l-red-500',
-    icon: '🚨',
-    label: 'CRITICAL',
+    bg: "alert-critical",
+    border: "border-l-red-500",
+    icon: "🚨",
+    label: "CRITICAL",
   },
   warning: {
-    bg: 'alert-warning',
-    border: 'border-l-amber-500',
-    icon: '⚠️',
-    label: 'WARNING',
+    bg: "alert-warning",
+    border: "border-l-amber-500",
+    icon: "⚠️",
+    label: "WARNING",
   },
   info: {
-    bg: 'alert-info',
-    border: 'border-l-cyan-500',
-    icon: 'ℹ️',
-    label: 'INFO',
+    bg: "alert-info",
+    border: "border-l-cyan-500",
+    icon: "ℹ️",
+    label: "INFO",
   },
 };
 
 function formatTimestamp(timestamp: string): string {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 
@@ -69,25 +72,38 @@ function AlertItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm">{config.icon}</span>
-            <span className={`text-xs font-bold uppercase tracking-wider ${
-              alert.severity === 'critical' ? 'text-red-400' :
-              alert.severity === 'warning' ? 'text-amber-400' : 'text-cyan-400'
-            }`}>
+            <span
+              className={`text-xs font-bold uppercase tracking-wider ${
+                alert.severity === "critical"
+                  ? "text-red-400"
+                  : alert.severity === "warning"
+                    ? "text-amber-400"
+                    : "text-cyan-400"
+              }`}
+            >
               {config.label}
             </span>
             <span className="text-xs text-slate-500">•</span>
-            <span className="text-xs text-slate-400">{formatTimestamp(alert.timestamp)}</span>
+            <span className="text-xs text-slate-400">
+              {formatTimestamp(alert.timestamp)}
+            </span>
           </div>
-          
-          <p className="font-medium text-sm truncate">{alert.type.replace(/_/g, ' ')}</p>
-          <p className="text-sm text-slate-400 mt-1 line-clamp-2">{alert.message}</p>
-          
+
+          <p className="font-medium text-sm truncate">
+            {alert.type.replace(/_/g, " ")}
+          </p>
+          <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+            {alert.message}
+          </p>
+
           {alert.acknowledged && (
             <div className="flex items-center gap-1 mt-2 text-xs text-emerald-400">
               <CheckIcon className="w-3 h-3" />
               <span>Acknowledged</span>
               {alert.acknowledgedAt && (
-                <span className="text-slate-500">at {formatTimestamp(alert.acknowledgedAt)}</span>
+                <span className="text-slate-500">
+                  at {formatTimestamp(alert.acknowledgedAt)}
+                </span>
               )}
             </div>
           )}
@@ -96,27 +112,38 @@ function AlertItem({
         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {!alert.acknowledged && onAcknowledge && (
             <button
-              onClick={(e) => { e.stopPropagation(); onAcknowledge(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAcknowledge();
+              }}
               className="p-1.5 rounded bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400 transition-colors"
               title="Acknowledge"
             >
               <CheckIcon className="w-4 h-4" />
             </button>
           )}
-          
-          {alert.severity === 'critical' && !alert.escalatedAt && onEscalate && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onEscalate(); }}
-              className="p-1.5 rounded bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors"
-              title="Escalate"
-            >
-              <ArrowUpIcon className="w-4 h-4" />
-            </button>
-          )}
-          
+
+          {alert.severity === "critical" &&
+            !alert.escalatedAt &&
+            onEscalate && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEscalate();
+                }}
+                className="p-1.5 rounded bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors"
+                title="Escalate"
+              >
+                <ArrowUpIcon className="w-4 h-4" />
+              </button>
+            )}
+
           {onDismiss && (
             <button
-              onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDismiss();
+              }}
               className="p-1.5 rounded bg-slate-500/20 hover:bg-slate-500/40 text-slate-400 transition-colors"
               title="Dismiss"
             >
@@ -140,8 +167,12 @@ export function AlertPanel({
   const visibleAlerts = alerts.slice(0, maxVisible);
   const hiddenCount = alerts.length - maxVisible;
 
-  const criticalCount = alerts.filter((a) => a.severity === 'critical' && !a.acknowledged).length;
-  const warningCount = alerts.filter((a) => a.severity === 'warning' && !a.acknowledged).length;
+  const criticalCount = alerts.filter(
+    (a) => a.severity === "critical" && !a.acknowledged,
+  ).length;
+  const warningCount = alerts.filter(
+    (a) => a.severity === "warning" && !a.acknowledged,
+  ).length;
 
   return (
     <div className="h-full flex flex-col">
@@ -178,13 +209,19 @@ export function AlertPanel({
               <AlertItem
                 key={alert.id}
                 alert={alert}
-                onAcknowledge={onAcknowledge ? () => onAcknowledge(alert.alertId) : undefined}
-                onDismiss={onDismiss ? () => onDismiss(alert.alertId) : undefined}
-                onEscalate={onEscalate ? () => onEscalate(alert.alertId) : undefined}
+                onAcknowledge={
+                  onAcknowledge ? () => onAcknowledge(alert.alertId) : undefined
+                }
+                onDismiss={
+                  onDismiss ? () => onDismiss(alert.alertId) : undefined
+                }
+                onEscalate={
+                  onEscalate ? () => onEscalate(alert.alertId) : undefined
+                }
                 onClick={onAlertClick ? () => onAlertClick(alert) : undefined}
               />
             ))}
-            
+
             {hiddenCount > 0 && (
               <button className="w-full py-3 text-center text-sm text-slate-400 hover:text-white transition-colors">
                 View {hiddenCount} more alerts

@@ -4,7 +4,7 @@ Pytest configuration and async fixtures.
 
 import asyncio
 import sys
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -14,7 +14,6 @@ sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
 from services.api_gateway.main import app
 from shared_libraries.auth import CurrentUser, get_current_user
-from shared_libraries.database import Base, get_db
 
 
 # event_loop handled by pytest-asyncio (auto mode), but we need session scope for global engine compatibility

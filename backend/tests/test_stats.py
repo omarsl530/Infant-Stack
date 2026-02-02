@@ -95,7 +95,7 @@ async def test_dashboard_stats_accuracy(client_with_admin: AsyncClient):
         # Note: Stats API logic for active_sessions is currently:
         # active_users_result = await db.execute(select(func.count(User.id)).where(User.is_active == True))
         expected_active_sessions = await session.scalar(
-            select(func.count(User.id)).where(User.is_active == True)
+            select(func.count(User.id)).where(User.is_active.is_(True))
         )
 
         expected_active_infants = await session.scalar(

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { User, Role } from '../types';
+import React, { useState } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { User, Role } from "../types";
 
 interface UserFormModalProps {
   user?: User;
@@ -9,31 +9,36 @@ interface UserFormModalProps {
   onSubmit: (data: Partial<User> & { password?: string }) => Promise<void>;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose, onSubmit }) => {
+const UserFormModal: React.FC<UserFormModalProps> = ({
+  user,
+  roles = [],
+  onClose,
+  onSubmit,
+}) => {
   const [formData, setFormData] = useState({
-    email: user?.email || '',
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
-    role: user?.role || 'viewer',
-    password: '',
-    confirmPassword: '',
+    email: user?.email || "",
+    first_name: user?.first_name || "",
+    last_name: user?.last_name || "",
+    role: user?.role || "viewer",
+    password: "",
+    confirmPassword: "",
     is_active: user ? user.is_active : true,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!user && !formData.password) {
-      setError('Password is required for new users');
+      setError("Password is required for new users");
       return;
     }
 
     if (formData.password && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
@@ -56,7 +61,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
 
       await onSubmit(submitData);
     } catch (err) {
-      setError('Failed to save user');
+      setError("Failed to save user");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,10 +71,18 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-900/75 backdrop-blur-sm" onClick={onClose}></div>
+          <div
+            className="absolute inset-0 bg-gray-900/75 backdrop-blur-sm"
+            onClick={onClose}
+          ></div>
         </div>
 
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <span
+          className="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+        >
+          &#8203;
+        </span>
 
         <div className="inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           <div className="absolute top-0 right-0 pt-4 pr-4">
@@ -85,7 +98,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
           <form onSubmit={handleSubmit}>
             <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
-                {user ? 'Edit User' : 'Add New User'}
+                {user ? "Edit User" : "Add New User"}
               </h3>
 
               {error && (
@@ -97,90 +110,137 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">First Name</label>
+                    <label
+                      htmlFor="first_name"
+                      className="block text-sm font-medium text-gray-700 dark:text-slate-300"
+                    >
+                      First Name
+                    </label>
                     <input
                       id="first_name"
                       type="text"
                       required
                       className="form-input mt-1 block w-full"
                       value={formData.first_name}
-                      onChange={e => setFormData({ ...formData, first_name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, first_name: e.target.value })
+                      }
                     />
                   </div>
                   <div>
-                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Last Name</label>
+                    <label
+                      htmlFor="last_name"
+                      className="block text-sm font-medium text-gray-700 dark:text-slate-300"
+                    >
+                      Last Name
+                    </label>
                     <input
                       id="last_name"
                       type="text"
                       required
                       className="form-input mt-1 block w-full"
                       value={formData.last_name}
-                      onChange={e => setFormData({ ...formData, last_name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, last_name: e.target.value })
+                      }
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Email</label>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 dark:text-slate-300"
+                  >
+                    Email
+                  </label>
                   <input
                     id="email"
                     type="email"
                     required
                     className="form-input mt-1 block w-full"
                     value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Role</label>
+                  <label
+                    htmlFor="role"
+                    className="block text-sm font-medium text-gray-700 dark:text-slate-300"
+                  >
+                    Role
+                  </label>
                   <select
                     id="role"
                     className="form-select mt-1 block w-full"
                     value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value as any })
+                    }
                   >
                     {!formData.role && <option value="">Select a role</option>}
                     {roles.length > 0 ? (
-                        roles.map(role => (
-                            <option key={role.id} value={role.name}>{role.name}</option>
-                        ))
+                      roles.map((role) => (
+                        <option key={role.id} value={role.name}>
+                          {role.name}
+                        </option>
+                      ))
                     ) : (
-                        <>
-                            <option value="viewer">Viewer</option>
-                            <option value="nurse">Nurse</option>
-                            <option value="security">Security</option>
-                            <option value="admin">Admin</option>
-                        </>
+                      <>
+                        <option value="viewer">Viewer</option>
+                        <option value="nurse">Nurse</option>
+                        <option value="security">Security</option>
+                        <option value="admin">Admin</option>
+                      </>
                     )}
                   </select>
                 </div>
 
                 {!user && (
-                    <>
+                  <>
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Password</label>
-                        <input
+                      <label
+                        htmlFor="password"
+                        className="block text-sm font-medium text-gray-700 dark:text-slate-300"
+                      >
+                        Password
+                      </label>
+                      <input
                         id="password"
                         type="password"
                         required={!user}
                         className="form-input mt-1 block w-full"
                         value={formData.password}
-                        onChange={e => setFormData({ ...formData, password: e.target.value })}
-                        />
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                      />
                     </div>
                     <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Confirm Password</label>
-                        <input
+                      <label
+                        htmlFor="confirmPassword"
+                        className="block text-sm font-medium text-gray-700 dark:text-slate-300"
+                      >
+                        Confirm Password
+                      </label>
+                      <input
                         id="confirmPassword"
                         type="password"
                         required={!user}
                         className="form-input mt-1 block w-full"
                         value={formData.confirmPassword}
-                        onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        />
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            confirmPassword: e.target.value,
+                          })
+                        }
+                      />
                     </div>
-                    </>
+                  </>
                 )}
 
                 <div className="flex items-center mt-4">
@@ -189,9 +249,14 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                     type="checkbox"
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     checked={formData.is_active}
-                    onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, is_active: e.target.checked })
+                    }
                   />
-                  <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900 dark:text-slate-300">
+                  <label
+                    htmlFor="is_active"
+                    className="ml-2 block text-sm text-gray-900 dark:text-slate-300"
+                  >
                     Active Account
                   </label>
                 </div>
@@ -204,7 +269,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, roles = [], onClose
                 disabled={isSubmitting}
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
               >
-                {isSubmitting ? 'Saving...' : 'Save'}
+                {isSubmitting ? "Saving..." : "Save"}
               </button>
               <button
                 type="button"

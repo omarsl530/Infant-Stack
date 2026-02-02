@@ -5,8 +5,15 @@
  * Uses Keycloak for OIDC authentication with Authorization Code + PKCE flow.
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import keycloak from './keycloak';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import keycloak from "./keycloak";
 
 // =============================================================================
 // Types
@@ -80,12 +87,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const extractRoles = useCallback((): string[] => {
     const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
-    const clientRoles = keycloak.tokenParsed?.resource_access?.[keycloak.clientId || '']?.roles || [];
-    
+    const clientRoles =
+      keycloak.tokenParsed?.resource_access?.[keycloak.clientId || ""]?.roles ||
+      [];
+
     // Filter out Keycloak internal roles
-    const internalRoles = ['offline_access', 'uma_authorization', 'default-roles-infant-stack'];
+    const internalRoles = [
+      "offline_access",
+      "uma_authorization",
+      "default-roles-infant-stack",
+    ];
     return [...new Set([...realmRoles, ...clientRoles])].filter(
-      (role) => !internalRoles.includes(role)
+      (role) => !internalRoles.includes(role),
     );
   }, []);
 
@@ -96,16 +109,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!keycloak.tokenParsed) return null;
 
     const token = keycloak.tokenParsed;
-    const firstName = token.given_name || '';
-    const lastName = token.family_name || '';
-    
+    const firstName = token.given_name || "";
+    const lastName = token.family_name || "";
+
     return {
-      id: token.sub || '',
+      id: token.sub || "",
       email: token.email || null,
       username: token.preferred_username || null,
       firstName: firstName || null,
       lastName: lastName || null,
-      fullName: [firstName, lastName].filter(Boolean).join(' ') || token.preferred_username || 'User',
+      fullName:
+        [firstName, lastName].filter(Boolean).join(" ") ||
+        token.preferred_username ||
+        "User",
     };
   }, []);
 
@@ -124,7 +140,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Prevent double initialization in React StrictMode
     if (keycloakInitialized) {
-      console.log('[Auth] Keycloak already initialized, skipping...');
+      console.log("[Auth] Keycloak already initialized, skipping...");
       // If already initialized, just update state
       updateAuthState();
       setIsLoading(false);
@@ -134,31 +150,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initKeycloak = async () => {
       try {
         keycloakInitialized = true; // Mark as initialized before calling init
-        
+
         // Initialize with check-sso to silently check for existing session
         const authenticated = await keycloak.init({
-          onLoad: 'check-sso',
-          pkceMethod: 'S256',
+          onLoad: "check-sso",
+          pkceMethod: "S256",
           checkLoginIframe: false, // Disable for better UX
-          silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+          silentCheckSsoRedirectUri:
+            window.location.origin + "/silent-check-sso.html",
         });
 
-        console.log('[Auth] Keycloak initialized, authenticated:', authenticated);
+        console.log(
+          "[Auth] Keycloak initialized, authenticated:",
+          authenticated,
+        );
         updateAuthState();
         setIsLoading(false);
 
         // Set up token refresh handler
         keycloak.onTokenExpired = async () => {
-          console.log('[Auth] Token expired, refreshing...');
+          console.log("[Auth] Token expired, refreshing...");
           try {
-            const refreshed = await keycloak.updateToken(TOKEN_MIN_VALIDITY_SECONDS);
+            const refreshed = await keycloak.updateToken(
+              TOKEN_MIN_VALIDITY_SECONDS,
+            );
             if (refreshed) {
-              console.log('[Auth] Token refreshed successfully');
+              console.log("[Auth] Token refreshed successfully");
               updateAuthState();
             }
           } catch (err) {
-            console.error('[Auth] Failed to refresh token:', err);
-            setError('Session expired. Please login again.');
+            console.error("[Auth] Failed to refresh token:", err);
+            setError("Session expired. Please login again.");
             setIsAuthenticated(false);
             setUser(null);
             setRoles([]);
@@ -167,20 +189,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Set up auth state change handlers
         keycloak.onAuthSuccess = () => {
-          console.log('[Auth] Authentication successful');
+          console.log("[Auth] Authentication successful");
           updateAuthState();
         };
 
         keycloak.onAuthLogout = () => {
-          console.log('[Auth] User logged out');
+          console.log("[Auth] User logged out");
           setIsAuthenticated(false);
           setUser(null);
           setRoles([]);
         };
-
       } catch (err) {
-        console.error('[Auth] Keycloak initialization failed:', err);
-        setError('Failed to initialize authentication');
+        console.error("[Auth] Keycloak initialization failed:", err);
+        setError("Failed to initialize authentication");
         setIsLoading(false);
       }
     };
@@ -196,13 +217,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const refreshInterval = setInterval(async () => {
       try {
-        const refreshed = await keycloak.updateToken(TOKEN_MIN_VALIDITY_SECONDS);
+        const refreshed = await keycloak.updateToken(
+          TOKEN_MIN_VALIDITY_SECONDS,
+        );
         if (refreshed) {
-          console.log('[Auth] Token proactively refreshed');
+          console.log("[Auth] Token proactively refreshed");
           updateAuthState();
         }
       } catch (err) {
-        console.warn('[Auth] Token refresh failed:', err);
+        console.warn("[Auth] Token refresh failed:", err);
       }
     }, TOKEN_REFRESH_INTERVAL_MS);
 
@@ -218,8 +241,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         redirectUri: window.location.origin,
       });
     } catch (err) {
-      console.error('[Auth] Login failed:', err);
-      setError('Login failed. Please try again.');
+      console.error("[Auth] Login failed:", err);
+      setError("Login failed. Please try again.");
     }
   }, []);
 
@@ -232,7 +255,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         redirectUri: window.location.origin,
       });
     } catch (err) {
-      console.error('[Auth] Logout failed:', err);
+      console.error("[Auth] Logout failed:", err);
     }
   }, []);
 
@@ -249,7 +272,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await keycloak.updateToken(30);
       return keycloak.token || null;
     } catch (err) {
-      console.error('[Auth] Failed to get access token:', err);
+      console.error("[Auth] Failed to get access token:", err);
       return null;
     }
   }, []);
@@ -257,22 +280,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Check if user has a specific role.
    */
-  const hasRole = useCallback((role: string): boolean => {
-    return roles.includes(role);
-  }, [roles]);
+  const hasRole = useCallback(
+    (role: string): boolean => {
+      return roles.includes(role);
+    },
+    [roles],
+  );
 
   /**
    * Check if user has any of the specified roles.
    */
-  const hasAnyRole = useCallback((checkRoles: string[]): boolean => {
-    return checkRoles.some((role) => roles.includes(role));
-  }, [roles]);
+  const hasAnyRole = useCallback(
+    (checkRoles: string[]): boolean => {
+      return checkRoles.some((role) => roles.includes(role));
+    },
+    [roles],
+  );
 
   /**
    * Check if user is admin.
    */
   const isAdmin = useCallback((): boolean => {
-    return hasRole('admin');
+    return hasRole("admin");
   }, [hasRole]);
 
   // Context value
@@ -291,9 +320,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
@@ -308,7 +335,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

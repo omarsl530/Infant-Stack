@@ -3,7 +3,6 @@ Mother/Guardian management endpoints.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,9 +10,8 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
 
-from database.orm_models.models import Mother, Pairing, TagStatus
+from database.orm_models.models import Mother, TagStatus
 from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
 from shared_libraries.database import get_db
 
@@ -25,8 +23,8 @@ class MotherCreate(BaseModel):
 
     tag_id: str
     name: str  # Combined name for simplicity
-    room: Optional[str] = None
-    contact_number: Optional[str] = None
+    room: str | None = None
+    contact_number: str | None = None
 
 
 class MotherResponse(BaseModel):
@@ -35,8 +33,8 @@ class MotherResponse(BaseModel):
     id: UUID
     tag_id: str
     name: str
-    room: Optional[str]
-    contact_number: Optional[str]
+    room: str | None
+    contact_number: str | None
     tag_status: str
     created_at: datetime
 
@@ -120,7 +118,7 @@ async def create_mother(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Mother with tag ID {mother_data.tag_id} or MRN already exists",
-        )
+        ) from None
 
     return MotherResponse(
         id=mother.id,

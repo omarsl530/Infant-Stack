@@ -5,7 +5,6 @@ Provides endpoints for viewing system audit logs.
 """
 
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -14,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_models.models import AuditLog
-from shared_libraries.auth import CurrentUser, Permissions, require_audit_read
+from shared_libraries.auth import CurrentUser, require_audit_read
 from shared_libraries.database import get_db
 
 router = APIRouter()
@@ -29,12 +28,12 @@ class AuditLogResponse(BaseModel):
     """Audit log entry response."""
 
     id: UUID
-    user_id: Optional[UUID]
+    user_id: UUID | None
     action: str
     resource_type: str
-    resource_id: Optional[str]
-    details: Optional[dict]
-    ip_address: Optional[str]
+    resource_id: str | None
+    details: dict | None
+    ip_address: str | None
     created_at: datetime
 
     class Config:
@@ -44,7 +43,7 @@ class AuditLogResponse(BaseModel):
 class AuditLogList(BaseModel):
     """Paginated list of audit logs."""
 
-    items: List[AuditLogResponse]
+    items: list[AuditLogResponse]
     total: int
     page: int
     limit: int
@@ -53,8 +52,8 @@ class AuditLogList(BaseModel):
 class AuditFilters(BaseModel):
     """Available filters for audit logs."""
 
-    actions: List[str]
-    resource_types: List[str]
+    actions: list[str]
+    resource_types: list[str]
 
 
 # =============================================================================
@@ -66,11 +65,11 @@ class AuditFilters(BaseModel):
 async def list_audit_logs(
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=100),
-    user_id: Optional[UUID] = Query(None),
-    action: Optional[str] = Query(None),
-    resource_type: Optional[str] = Query(None),
-    from_time: Optional[datetime] = Query(None),
-    to_time: Optional[datetime] = Query(None),
+    user_id: UUID | None = Query(None),
+    action: str | None = Query(None),
+    resource_type: str | None = Query(None),
+    from_time: datetime | None = Query(None),
+    to_time: datetime | None = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(require_audit_read),
 ):
@@ -132,11 +131,11 @@ async def get_audit_filters(
     """
     # Get unique actions
     action_result = await db.execute(select(AuditLog.action).distinct())
-    actions = [r for r in action_result.scalars().all()]
+    actions = list(action_result.scalars().all())
 
     # Get unique resource types
     resource_result = await db.execute(select(AuditLog.resource_type).distinct())
-    resource_types = [r for r in resource_result.scalars().all()]
+    resource_types = list(resource_result.scalars().all())
 
     return AuditFilters(
         actions=sorted(actions),

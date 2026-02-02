@@ -4,7 +4,6 @@ Geofencing Service.
 Handles logic for checking if tags are entering/exiting zones and triggering alerts.
 """
 
-from typing import Dict, List
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,8 +12,6 @@ from database.orm_models.models import (
     Alert,
     AlertSeverity,
     Infant,
-    Mother,
-    TagStatus,
     Zone,
     ZoneType,
 )
@@ -23,7 +20,7 @@ from shared_libraries.logging import get_logger
 logger = get_logger(__name__)
 
 
-def is_point_in_polygon(x: float, y: float, polygon: List[Dict[str, float]]) -> bool:
+def is_point_in_polygon(x: float, y: float, polygon: list[dict[str, float]]) -> bool:
     """
     Check if a point (x, y) is inside a polygon using Ray Casting algorithm.
     params:
@@ -58,7 +55,7 @@ def is_point_in_polygon(x: float, y: float, polygon: List[Dict[str, float]]) -> 
 
 async def check_geofence(
     db: AsyncSession, tag_id: str, asset_type: str, x: float, y: float, floor: str
-) -> List[Alert]:
+) -> list[Alert]:
     """
     Check if the given position violates any geofence rules.
     Returns a list of generated alerts.
@@ -66,7 +63,7 @@ async def check_geofence(
     alerts_generated = []
 
     # 1. Fetch active zones for this floor
-    query = select(Zone).where(and_(Zone.floor == floor, Zone.is_active == True))
+    query = select(Zone).where(and_(Zone.floor == floor, Zone.is_active.is_(True)))
     result = await db.execute(query)
     zones = result.scalars().all()
 
