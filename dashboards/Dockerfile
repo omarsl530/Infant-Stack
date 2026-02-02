@@ -10,7 +10,6 @@ COPY package*.json ./
 COPY nurse-dashboard/package*.json ./nurse-dashboard/
 COPY security-dashboard/package*.json ./security-dashboard/
 COPY admin-dashboard/package*.json ./admin-dashboard/
-COPY shared-components/package*.json ./shared-components/
 
 # Install dependencies
 RUN npm ci

@@ -7,8 +7,7 @@
   "workspaces": [
     "nurse-dashboard",
     "security-dashboard",
-    "admin-dashboard",
-    "shared-components"
+    "admin-dashboard"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=nurse-dashboard",
