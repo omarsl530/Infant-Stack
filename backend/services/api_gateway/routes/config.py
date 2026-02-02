@@ -40,7 +40,8 @@ class ConfigResponse(BaseModel):
         from_attributes = True
 
     @validator("value", pre=True)
-    def parse_value(self, v, values):
+    @classmethod
+    def parse_value(cls, v, values):
         """Parse value based on type if it's a string."""
         if not isinstance(v, str):
             return v
