@@ -1,0 +1,57 @@
+[
+  {
+    "title": "Establish Frontend Test Infrastructure",
+    "description": "Install Vitest and React Testing Library in Admin Dashboard to enable component testing.",
+    "acceptance_criteria": [
+      "Dev dependencies installed",
+      "npm test runs vitest",
+      "Example test passes"
+    ],
+    "priority": "P1",
+    "estimate_hours": 4,
+    "owner_role": "Frontend QA",
+    "dependencies": [],
+    "risk": "Low"
+  },
+  {
+    "title": "Automate User Creation Integration Test",
+    "description": "Create a pytest integration test for POST /api/v1/users to prevent regression of field validation issues.",
+    "acceptance_criteria": [
+      "Test verifies success case",
+      "Test verifies 422 on short password",
+      "Test checks DB state"
+    ],
+    "priority": "P0",
+    "estimate_hours": 6,
+    "owner_role": "Backend QA",
+    "dependencies": ["pytest-asyncio"],
+    "risk": "Medium"
+  },
+  {
+    "title": "Implement Dashboard Stats Load Test",
+    "description": "Create k6 script to verified performance of /api/v1/stats/dashboard under load.",
+    "acceptance_criteria": [
+      "k6 script created",
+      "Baseline latency established < 200ms",
+      "Run against local docker environment"
+    ],
+    "priority": "P2",
+    "estimate_hours": 3,
+    "owner_role": "SRE/QA",
+    "dependencies": [],
+    "risk": "Low"
+  },
+  {
+    "title": "Configure GitHub Actions CI Pipeline",
+    "description": "Set up .github/workflows to run backend tests on push.",
+    "acceptance_criteria": [
+      "Workflow YAML created",
+      "Tests pass in CI environment"
+    ],
+    "priority": "P1",
+    "estimate_hours": 4,
+    "owner_role": "DevOps",
+    "dependencies": [],
+    "risk": "High"
+  }
+]
