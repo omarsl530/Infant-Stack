@@ -2,7 +2,6 @@
 Pytest configuration and async fixtures.
 """
 
-import asyncio
 import sys
 from collections.abc import AsyncGenerator
 
@@ -14,11 +13,9 @@ sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
 from services.api_gateway.main import app
 from shared_libraries.auth import CurrentUser, get_current_user
-
+from shared_libraries.database import async_engine, async_session_factory, init_db
 
 # event_loop scope is now handled by pyproject.toml (pytest-asyncio 0.23+)
-
-from shared_libraries.database import async_engine, async_session_factory, init_db
 
 
 @pytest.fixture(scope="session", autouse=True)
