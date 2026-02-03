@@ -53,7 +53,7 @@ flowchart TB
 ### Tech Stack
 
 | Layer | Technology |
-|-------|------------|
+| :--- | :--- |
 | Frontend | React 18, TypeScript, Vite, Vanilla CSS |
 | Primary DB | PostgreSQL 16 (Async) |
 | Validation | Pydantic V2 |
@@ -90,32 +90,33 @@ docker-compose ps
 ### Access Points
 
 | Service | URL |
-|---------|-----|
-| Nurse Dashboard | http://localhost:3000 |
-| Security Dashboard | http://localhost:3001 |
-| Admin Dashboard | http://localhost:3002 |
-| API Gateway | http://localhost:8000/docs |
-| MQTT Broker | localhost:1883 |
+| :--- | :--- |
+| Home Dashboard | [http://localhost:3003](http://localhost:3003) |
+| Nurse Dashboard | [http://localhost:3000](http://localhost:3000) |
+| Security Dashboard | [http://localhost:3001](http://localhost:3001) |
+| Admin Dashboard | [http://localhost:3002](http://localhost:3002) |
+| API Gateway | [http://localhost:8000/docs](http://localhost:8000/docs) |
+| MQTT Broker | `localhost:1883` |
 
 ---
 
 ## 📁 Repository Structure
 
-```
+```text
 infant-stack/
 ├── backend/
 │   ├── services/
-│   │   ├── device-gateway/      # MQTT message handler
-│   │   ├── pairing-service/     # Infant-mother pairing
-│   │   ├── gate-authorization/  # Exit authorization
-│   │   ├── event-alarm-service/ # Alert management
-│   │   ├── biometric-service/   # Footprint matching
-│   │   └── user-role-service/   # Authentication
-│   ├── api-gateway/             # API routing & auth
+│   │   ├── api_gateway/         # Consolidated API Gateway & Services
+│   │   │   ├── routes/          # API Routes (Auth, Pairing, etc.)
+│   │   │   └── middleware/      # Auth & Logging Middleware
+│   │   ├── device_gateway/      # MQTT message handler
+│   │   └── archiver/            # Data archiving
 │   ├── database/
 │   │   ├── migrations/          # SQL migrations
 │   │   └── orm-models/          # SQLAlchemy models
 │   └── shared-libraries/        # Common utilities
+├── dashboards/
+│   ├── home-dashboard/          # Central Landing Page
 │   ├── nurse-dashboard/         # Real-time monitoring
 │   ├── security-dashboard/      # Alerts & gate control
 │   └── admin-dashboard/         # System configuration
@@ -126,7 +127,7 @@ infant-stack/
 │   ├── kubernetes/              # K8s manifests
 │   ├── docker/                  # Dockerfiles
 │   └── infrastructure-as-code/  # Terraform
-├── docs/                        # Documentation
+├── Instructions/                # Detailed Documentation & PDFs
 ├── qa/                          # Test plans & automation
 └── tools/                       # Utilities & scripts
 ```
@@ -199,10 +200,12 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 ## 📚 Documentation
 
-- [System Architecture](docs/architecture/system-architecture.md)
-- [API Documentation](docs/specifications/api-specification.md)
-- [Database Schema](docs/specifications/database-schema.md)
-- [Deployment Guide](docs/deployment.md)
+Detailed documentation is available in the `Instructions/` directory:
+
+- [Full API Documentation](Instructions/Full%20API%20documentation.pdf)
+- [System Architecture](Instructions/Full%20backend%20system%20architecture.pdf)
+- [Database Schema](Instructions/Full%20database%20schema.pdf)
+- [Regulatory Compliance](Instructions/Full%20Regulatory%20Compliance%20Checklist.pdf)
 
 ---
 

@@ -42,6 +42,7 @@ This starts:
 - **API Gateway** (port 8000) - REST API
 - **Device Gateway** - MQTT-to-database bridge
 - **Dashboards**:
+  - **Home Dashboard**: [http://localhost:3003](http://localhost:3003)
   - **Nurse Dashboard**: [http://localhost:3000](http://localhost:3000)
   - **Security Dashboard**: [http://localhost:3001](http://localhost:3001)
   - **Admin Dashboard**: [http://localhost:3002](http://localhost:3002)
@@ -70,6 +71,7 @@ curl http://localhost:8000/health
 ## Running Tests
 
 ### Backend Tests
+
 ```bash
 cd backend
 python -m venv .venv
@@ -79,6 +81,7 @@ pytest tests/
 ```
 
 ### Frontend Tests
+
 ```bash
 cd dashboards/admin-dashboard
 npm install
@@ -122,6 +125,7 @@ docker-compose down -v
 ### Database connection issues
 
 Wait 30 seconds after startup for health checks, then:
+
 ```bash
 docker-compose restart api-gateway
 ```
