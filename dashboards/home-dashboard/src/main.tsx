@@ -24,13 +24,14 @@ const oidcConfig: AuthProviderProps = {
     "http://localhost:8080/realms/infant-stack",
   client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || "infant-stack-spa",
   redirect_uri: window.location.origin,
-  post_logout_redirect_uri: window.location.origin,
+  post_logout_redirect_uri: "http://localhost:3003/login",
   scope: "openid profile email roles",
 
   // Clean up URL after successful login (remove code/state params)
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   },
+  monitorSession: true, // Enable global logout detection
 
   // Automatic silent token refresh
   automaticSilentRenew: true,

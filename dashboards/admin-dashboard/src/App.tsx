@@ -54,6 +54,16 @@ function DashboardLayout() {
     return () => clearInterval(interval);
   }, []);
 
+  // Listen for global logout events (from other tabs/apps)
+  useEffect(() => {
+    return auth.events.addUserSignedOut(() => {
+      console.log("User signed out from another tab/window. Clearing session.");
+      auth.removeUser();
+      // Redirect to centralized login
+      window.location.href = "http://localhost:3003/login";
+    });
+  }, [auth]);
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -112,7 +122,11 @@ function DashboardLayout() {
             Back to Hub
           </button>
           <button
-            onClick={() => auth.signoutRedirect()}
+            onClick={() =>
+              auth.signoutRedirect({
+                post_logout_redirect_uri: "http://localhost:3003/login",
+              })
+            }
             className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
           >
             <ArrowRightOnRectangleIcon className="w-3 h-3" />

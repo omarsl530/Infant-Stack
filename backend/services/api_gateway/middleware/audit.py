@@ -25,28 +25,80 @@ class AuditMiddleware(BaseHTTPMiddleware):
     - Status Code
     - Duration
     """
+    
+    async def _update_last_seen(self, user_id: UUID):
+        """
+        Update the last_login timestamp for a user.
+        Also infers a 'login' audit event if user was inactive for > 15 minutes.
+        """
+        try:
+             async with session_factory() as db:
+                from database.orm_models.models import User, AuditLog
+                from datetime import datetime, timedelta, timezone
+                from sqlalchemy import select
+                
+                # 1. Fetch current last_login
+                result = await db.execute(select(User).where(User.id == user_id))
+                user = result.scalar_one_or_none()
+                
+                if not user:
+                    return
+
+                # Use timezone-aware UTC to match database typically returning offset-aware for TIMESTAMPTZ
+                now = datetime.now(timezone.utc)
+                # Lower threshold to 1 minute for testing/demo purposes so user sees logs more easily
+                threshold = timedelta(minutes=1)
+                
+                # 2. Check if we should log a "login" event
+                should_log_login = False
+                
+                last_login = user.last_login
+                # Handle case where DB might return naive (if configured differently) or user.last_login is None
+                if last_login:
+                    if last_login.tzinfo is None:
+                        # Ensure we compare apples to apples if DB returns naive
+                        last_login = last_login.replace(tzinfo=timezone.utc)
+                
+                    if (now - last_login > threshold):
+                        should_log_login = True
+                else:
+                    should_log_login = True
+                    
+                # 3. Update last_login
+                update_threshold = timedelta(minutes=1)
+                
+                # Check update threshold
+                should_update_db = should_log_login or not last_login
+                if not should_update_db and last_login:
+                     if (now - last_login > update_threshold):
+                         should_update_db = True
+                
+                if should_update_db:
+                    user.last_login = now
+                    db.add(user) # Mark as modified
+                    
+                    if should_log_login:
+                        # Create implicit login audit log
+                        login_log = AuditLog(
+                            user_id=user_id,
+                            action="login",
+                            resource_type="auth",
+                            resource_id=str(user_id),
+                            details={"method": "implicit_session_start", "inferred": True},
+                            ip_address=None # We don't have IP easily here without passing it down, acceptable for now
+                        )
+                        db.add(login_log)
+                    
+                    await db.commit()
+                    
+        except Exception as e:
+            # Swallow errors here to not impact request
+            logger.debug("last_seen_update_failed", error=str(e))
 
     async def dispatch(self, request: Request, call_next) -> Response:
         start_time = time.time()
 
-        # Determine if we should log based on method (skip GET/OPTIONS/HEAD)
-        # We can make this configurable, for now log state-changing methods
-        should_log = request.method in ["POST", "PUT", "PATCH", "DELETE"]
-
-        # Execute request
-        response = await call_next(request)
-
-        if not should_log:
-            return response
-
-        # Collect log data
-        duration_ms = int((time.time() - start_time) * 1000)
-        status_code = response.status_code
-        path = request.url.path
-        method = request.method
-        ip = request.client.host if request.client else None
-
-        # Extract User ID from Token
+        # 1. Initialize variables & Extract User ID from Token
         user_id: UUID | None = None
         user_details = {}
 
@@ -54,19 +106,42 @@ class AuditMiddleware(BaseHTTPMiddleware):
             auth = request.headers.get("Authorization")
             if auth and auth.startswith("Bearer "):
                 token = auth.split(" ")[1]
-                # Verify token to get claims
                 payload = await verify_token(token)
                 try:
                     user_id = UUID(payload.sub)
                 except ValueError:
                     user_details["sub_raw"] = payload.sub
         except Exception as e:
-            # Token invalid or verify failed - log simply as anonymous but record error
             logger.debug("audit_token_verify_failed", error=str(e))
 
-        # Log to Database (async fire-and-forget style to not block response too much)
-        # We await it here to ensure data safety, but it adds ms to latency.
-        # Alternatively use BackgroundTasks but middleware dispatch returns Response immediately.
+        # 2. Determine if we should audit log
+        should_log = request.method in ["POST", "PUT", "PATCH", "DELETE"]
+
+        # 3. Execute request
+        response = await call_next(request)
+
+        # 4. Update Last Seen (if authenticated)
+        # We do this regardless of method, but maybe debounce or async it?
+        # If we log to DB (should_log=True), we can do it there to save a separate commit if we wanted,
+        # but reusing the helper is cleaner.
+        if user_id:
+             try:
+                 # Fire and forget-ish (we await it, so it adds latency, but ensures consistency)
+                 await self._update_last_seen(user_id)
+             except Exception:
+                 pass
+
+        # 5. Handle early exit for non-audited requests
+        if not should_log:
+            return response
+
+        # 6. Audit Logging
+        duration_ms = int((time.time() - start_time) * 1000)
+        status_code = response.status_code
+        path = request.url.path
+        method = request.method
+        ip = request.client.host if request.client else None
+
         try:
             await self._log_to_db(
                 user_id,
@@ -130,3 +205,5 @@ class AuditMiddleware(BaseHTTPMiddleware):
                     await db.commit()
                 else:
                     raise e
+
+

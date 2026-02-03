@@ -187,7 +187,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       keycloakInitPromise = keycloak.init({
         onLoad: "check-sso",
         pkceMethod: "S256",
-        checkLoginIframe: false, // Disable for better UX
+        checkLoginIframe: true, // Enable for global logout detection
         silentCheckSsoRedirectUri:
           window.location.origin + "/silent-check-sso.html",
       });

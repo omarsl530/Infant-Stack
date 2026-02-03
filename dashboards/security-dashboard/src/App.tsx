@@ -160,6 +160,14 @@ export default function App() {
     fetchData();
   }, []);
 
+  // Listen for global logout events
+  useEffect(() => {
+    return auth.events.addUserSignedOut(() => {
+      auth.removeUser();
+      window.location.href = "http://localhost:3003/login";
+    });
+  }, [auth]);
+
   // Handlers
   const handleAcknowledgeAlert = useCallback(
     async (alertId: string) => {
@@ -373,7 +381,11 @@ export default function App() {
                 <Cog6ToothIcon className="w-5 h-5" />
               </button>
               <button
-                onClick={() => auth.signoutRedirect()}
+                onClick={() =>
+                  auth.signoutRedirect({
+                    post_logout_redirect_uri: "http://localhost:3003/login",
+                  })
+                }
                 className="p-2 rounded-lg hover:bg-slate-700/50 text-red-400"
                 title="Sign Out"
               >

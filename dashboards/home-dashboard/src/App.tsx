@@ -5,6 +5,7 @@
  * Uses ProtectedRoute to guard authenticated routes and handle deep-link redirects.
  */
 
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -14,6 +15,16 @@ import AccessDenied from "./components/AccessDenied";
 
 export default function App() {
   const auth = useAuth();
+
+  useEffect(() => {
+    return auth.events.addUserSignedOut(() => {
+      auth.removeUser();
+      // No need to redirect if we are already in the "App" router, 
+      // the ProtectedRoute or LoginPage will handle the rest, 
+      // but explicitly going to login ensures clean state.
+      window.location.href = "/login";
+    });
+  }, [auth]);
 
   // Show loading while OIDC is initializing
   if (auth.isLoading) {

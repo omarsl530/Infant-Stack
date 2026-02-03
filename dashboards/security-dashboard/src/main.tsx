@@ -19,8 +19,11 @@ const oidcConfig: AuthProviderProps = {
     import.meta.env.VITE_KEYCLOAK_URL ||
     "http://localhost:8080/realms/infant-stack",
   client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || "infant-stack-spa",
+  // Redirect to Home Dashboard after login (must be handled via callback to avoid state mismatch)
   redirect_uri: window.location.origin,
-  post_logout_redirect_uri: "http://localhost:3003/login", // Redirect to home-dashboard login
+  // Redirect to Home Dashboard login after logout
+  post_logout_redirect_uri: "http://localhost:3003/login",
+  response_type: "code",
   scope: "openid profile email roles",
 
   onSigninCallback: () => {
@@ -29,6 +32,7 @@ const oidcConfig: AuthProviderProps = {
 
   automaticSilentRenew: true,
   loadUserInfo: true,
+  monitorSession: true, // Enable listening for session changes
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

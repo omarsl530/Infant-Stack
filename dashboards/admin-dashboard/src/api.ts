@@ -254,7 +254,9 @@ export async function fetchAuditLogs(params?: {
   if (params?.from) query.set("from_time", params.from);
   if (params?.to) query.set("to_time", params.to);
 
-  const response = await authFetch(`${API_BASE}/audit-logs?${query}`);
+  if (params?.to) query.set("to_time", params.to);
+
+  const response = await authFetch(`${API_BASE}/audit?${query}`);
   return handleResponse<AuditLogListResponse>(response);
 }
 
@@ -262,7 +264,7 @@ export async function fetchAuditFilters(): Promise<{
   actions: string[];
   resource_types: string[];
 }> {
-  const response = await authFetch(`${API_BASE}/audit-logs/filters`);
+  const response = await authFetch(`${API_BASE}/audit/filters`);
   return handleResponse<{ actions: string[]; resource_types: string[] }>(
     response,
   );

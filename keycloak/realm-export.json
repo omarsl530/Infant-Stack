@@ -119,13 +119,15 @@
       "authorizationServicesEnabled": false,
       "frontchannelLogout": true,
       "protocol": "openid-connect",
-      "rootUrl": "http://localhost:3000",
+      "rootUrl": "http://localhost:3003",
       "baseUrl": "/",
       "redirectUris": [
         "http://localhost:3000/*",
         "http://localhost:3001/*",
         "http://localhost:3002/*",
-        "http://localhost:3003/*"
+        "http://localhost:3002/*",
+        "http://localhost:3003/*",
+        "http://localhost:3003/login"
       ],
       "webOrigins": [
         "http://localhost:3000",
@@ -135,7 +137,7 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*++http://localhost:3003/*"
+        "post.logout.redirect.uris": "http://localhost:3000/*++http://localhost:3003/*++http://localhost:3002/*++http://localhost:3003/login"
       },
       "defaultClientScopes": [
         "web-origins",

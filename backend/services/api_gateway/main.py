@@ -33,6 +33,7 @@ from services.api_gateway.routes import (
     websocket,
     zones,
 )
+from services.api_gateway.middleware.audit import AuditMiddleware
 from shared_libraries.config import get_settings
 from shared_libraries.database import close_db, init_db
 from shared_libraries.logging import get_logger, setup_logging
@@ -91,6 +92,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register Audit Middleware
+app.add_middleware(AuditMiddleware)
 
 
 # Exception handler
