@@ -78,6 +78,8 @@ class DeviceGateway:
             client.subscribe(settings.mqtt_topic_movements)
             # Subscribe to alert events
             client.subscribe(settings.mqtt_topic_alerts)
+            # Subscribe to gate control events (from Terminal)
+            client.subscribe("hospital/gates/+/control")
         else:
             logger.error("mqtt_connection_failed", reason_code=str(reason_code))
 
@@ -112,6 +114,8 @@ class DeviceGateway:
                 self._handle_movement_event(payload, topic)
             elif "alerts" in topic:
                 self._handle_alert_event(payload)
+            elif "control" in topic:
+                self._handle_gate_control_event(payload, topic)
             else:
                 logger.warning("unknown_topic", topic=topic)
 
@@ -187,6 +191,70 @@ class DeviceGateway:
         except Exception as e:
             session.rollback()
             logger.error("alert_save_error", error=str(e))
+        finally:
+            session.close()
+
+    def _handle_gate_control_event(self, payload: dict, topic: str) -> None:
+        """Handle gate control commands (UNLOCK, ALARM, CLEAR)."""
+        session = self.Session()
+        try:
+            # Extract gate_id from topic (hospital/gates/gate_1/control)
+            # topic structure: hospital/gates/{gate_id}/control
+            parts = topic.split("/")
+            gate_id = parts[2] if len(parts) > 2 else "unknown"
+            
+            command = payload.get("command")
+            
+            event_type = "gate_state"
+            state = None
+            
+            if command == "UNLOCK":
+                state = "OPEN"
+                event_type = "gate_state"
+            elif command == "ALARM":
+                state = "FORCED_OPEN" 
+                event_type = "forced"
+                # Create a high severity alert
+                self._publish_alert({
+                    "type": "security_alarm",
+                    "severity": "critical",
+                    "message": f"Security Alarm triggered at {gate_id}",
+                    "reader_id": gate_id,
+                    "tag_id": None
+                })
+            elif command == "CLEAR":
+                state = "CLOSED"
+                event_type = "gate_state"
+
+            logger.info("gate_control", gate_id=gate_id, command=command)
+            
+            # Log to gate_events
+            query = text("""
+                INSERT INTO gate_events (id, gate_id, event_type, state, timestamp)
+                VALUES (:id, :gate_id, :event_type, :state, :timestamp)
+            """)
+            
+            session.execute(query, {
+                "id": str(uuid4()),
+                "gate_id": gate_id,
+                "event_type": event_type,
+                "state": state,
+                "timestamp": datetime.utcnow()
+            })
+            
+            # Update Gate status if exists
+            update_query = text("UPDATE gates SET state = :state, last_state_change = :timestamp WHERE gate_id = :gate_id")
+            session.execute(update_query, {
+                "state": state if state else "UNKNOWN",
+                "timestamp": datetime.utcnow(),
+                "gate_id": gate_id
+            })
+            
+            session.commit()
+
+        except Exception as e:
+            session.rollback()
+            logger.error("gate_control_error", error=str(e))
         finally:
             session.close()
 
