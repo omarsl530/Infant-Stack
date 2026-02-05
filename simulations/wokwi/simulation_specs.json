@@ -1,0 +1,11 @@
+{
+    "wifi_ssid": "WOKWI-GUEST",
+    "wifi_pass": "",
+    "mqtt_broker": "test.mosquitto.org",
+    "mqtt_port": 1883,
+    "secret_key": "MY_SECURE_KEY_123",
+    "device_id": "IT-0001",
+    "gate_id": "GATE-1",
+    "publish_interval": 10,
+    "presence_expiry": 30
+}

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "author": "Antigravity Agent",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btn1", "top": 110, "left": -60, "attrs": { "color": "blue" } },
+    { "type": "wokwi-pushbutton", "id": "btn2", "top": 110, "left": 30, "attrs": { "color": "green" } },
+    { "type": "wokwi-led", "id": "led1", "top": 60, "left": -60, "attrs": { "color": "blue" } },
+    { "type": "wokwi-text", "id": "txt1", "top": 140, "left": -70, "attrs": { "text": "Pair" } },
+    { "type": "wokwi-text", "id": "txt2", "top": 140, "left": 20, "attrs": { "text": "Cancel" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "btn1:2.r", "esp:GND.1", "black", [ "v0" ] ],
+    [ "btn1:1.l", "esp:14", "blue", [ "h-10", "v-40", "h20" ] ],
+    [ "btn2:2.r", "esp:GND.2", "black", [ "v0" ] ],
+    [ "btn2:1.l", "esp:12", "green", [ "h-10", "v-40", "h20" ] ],
+    [ "led1:C", "esp:GND.3", "black", [ "v0" ] ],
+    [ "led1:A", "esp:2", "blue", [ "h10", "v20" ] ]
+  ],
+  "dependencies": {}
+}

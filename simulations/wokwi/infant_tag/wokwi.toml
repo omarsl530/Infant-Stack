@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = "micropython.bin"
+rfc2217ServerPort = 4001
