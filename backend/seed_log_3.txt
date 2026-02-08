@@ -1,0 +1,22 @@
+Starting zone seeding...
+2026-02-05 14:37:03 [info     ] Starting zone seeding...
+2026-02-05 14:37:04 [info     ] Created zone: Restricted Area - Server Room (restricted)
+2026-02-05 14:37:04 [info     ] Created zone: Main Exit (exit)
+2026-02-05 14:37:04 [info     ] Created zone: Emergency Exit (exit)
+2026-02-05 14:37:04 [info     ] Created zone: Maternity Ward (authorized)
+2026-02-05 14:37:04 [info     ] Zone seeding completed!
+Total zones in database: 7
+  - Reception Area (authorized) on floor F1
+2026-02-05 14:37:04 [info     ]   - Reception Area (authorized) on floor F1
+  - NICU Ward (restricted) on floor F2
+2026-02-05 14:37:04 [info     ]   - NICU Ward (restricted) on floor F2
+  - Emergency Exit Zone (exit) on floor F1
+2026-02-05 14:37:04 [info     ]   - Emergency Exit Zone (exit) on floor F1
+  - Restricted Area - Server Room (restricted) on floor 1
+2026-02-05 14:37:04 [info     ]   - Restricted Area - Server Room (restricted) on floor 1
+  - Main Exit (exit) on floor 1
+2026-02-05 14:37:04 [info     ]   - Main Exit (exit) on floor 1
+  - Emergency Exit (exit) on floor 1
+2026-02-05 14:37:04 [info     ]   - Emergency Exit (exit) on floor 1
+  - Maternity Ward (authorized) on floor 1
+2026-02-05 14:37:04 [info     ]   - Maternity Ward (authorized) on floor 1

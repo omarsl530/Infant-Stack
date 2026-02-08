@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/omarsl530/Projects/Infant-Stack/backend/scripts/debug_zones_query.py", line 10, in <module>
+    from database.session import async_session_factory
+ModuleNotFoundError: No module named 'database.session'

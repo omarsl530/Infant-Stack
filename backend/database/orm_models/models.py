@@ -191,7 +191,7 @@ class Alert(Base):
         PGUUID(as_uuid=True), primary_key=True, default=uuid4
     )
     alert_type: Mapped[str] = mapped_column(String(50), index=True)
-    severity: Mapped[AlertSeverity] = mapped_column(SQLEnum(AlertSeverity))
+    severity: Mapped[AlertSeverity] = mapped_column(SQLEnum(AlertSeverity, name="alert_severity"))
     tag_id: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     reader_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     message: Mapped[str] = mapped_column(Text)
@@ -368,7 +368,7 @@ class GateEvent(Base):
         PGUUID(as_uuid=True), primary_key=True, default=uuid4
     )
     gate_id: Mapped[str] = mapped_column(String(50), index=True)
-    event_type: Mapped[GateEventType] = mapped_column(SQLEnum(GateEventType))
+    event_type: Mapped[GateEventType] = mapped_column(SQLEnum(GateEventType, name="gate_event_type", values_callable=lambda x: [e.value for e in x]))
     state: Mapped[GateState | None] = mapped_column(
         SQLEnum(GateState, name="gate_state"), nullable=True
     )
@@ -379,7 +379,7 @@ class GateEvent(Base):
     user_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     user_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     result: Mapped[GateEventResult | None] = mapped_column(
-        SQLEnum(GateEventResult), nullable=True
+        SQLEnum(GateEventResult, name="gate_event_result"), nullable=True
     )
     direction: Mapped[str | None] = mapped_column(String(10), nullable=True)  # IN, OUT
     duration_ms: Mapped[int | None] = mapped_column(nullable=True)
@@ -399,9 +399,9 @@ class GateEvent(Base):
 class ZoneType(str, Enum):
     """Type of security zone."""
 
-    AUTHORIZED = "AUTHORIZED"
-    RESTRICTED = "RESTRICTED"
-    EXIT = "EXIT"
+    AUTHORIZED = "authorized"
+    RESTRICTED = "restricted"
+    EXIT = "exit"
 
 
 class Zone(Base):
@@ -414,8 +414,8 @@ class Zone(Base):
     )
     name: Mapped[str] = mapped_column(String(100))
     floor: Mapped[str] = mapped_column(String(20), index=True)
-    zone_type: Mapped[ZoneType] = mapped_column(SQLEnum(ZoneType))
-    polygon: Mapped[dict] = mapped_column(JSONB)  # List of {x, y} points
+    zone_type: Mapped[ZoneType] = mapped_column(SQLEnum(ZoneType, name="zone_type", values_callable=lambda x: [e.value for e in x]))
+    polygon: Mapped[list[dict]] = mapped_column(JSONB)  # List of {x, y} points
     color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -455,7 +455,7 @@ class Camera(Base):
     stream_url: Mapped[str] = mapped_column(String(500))
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[CameraStatus] = mapped_column(
-        SQLEnum(CameraStatus), default=CameraStatus.ONLINE
+        SQLEnum(CameraStatus, name="camera_status", values_callable=lambda x: [e.value for e in x]), default=CameraStatus.ONLINE
     )
     extra_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -512,7 +512,7 @@ class SystemConfig(Base):
 
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
-    type: Mapped[ConfigType] = mapped_column(SQLEnum(ConfigType))
+    type: Mapped[ConfigType] = mapped_column(SQLEnum(ConfigType, name="configtype"))
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_public: Mapped[bool] = mapped_column(default=False)
     updated_at: Mapped[datetime] = mapped_column(

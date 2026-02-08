@@ -1,0 +1,1 @@
+Valid labels for zone_type: ['authorized', 'restricted', 'exit']

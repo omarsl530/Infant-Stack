@@ -1,0 +1,13 @@
+Starting zone seeding...
+2026-02-05 14:36:11 [info     ] Starting zone seeding...
+2026-02-05 14:36:11 [info     ] Created zone: Restricted Area - Server Room (restricted)
+Error seeding zones: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum zone_type: "RESTRICTED"
+[SQL: INSERT INTO zones (id, name, floor, zone_type, polygon, color, is_active, created_at, updated_at) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::zone_type, $5::JSONB, $6::VARCHAR, $7::BOOLEAN, $8::TIMESTAMP WITH TIME ZONE, $9::TIMESTAMP WITH TIME ZONE)]
+[parameters: (UUID('c8b4741f-2641-43d3-8494-f99be08490e4'), 'Restricted Area - Server Room', '1', 'RESTRICTED', '[{"x": 900.0, "y": 900.0}, {"x": 1000.0, "y": 900.0}, {"x": 1000.0, "y": 1000.0}, {"x": 900.0, "y": 1000.0}]', '#FF0000', True, datetime.datetime(2026, 2, 5, 11, 36, 11, 890517), datetime.datetime(2026, 2, 5, 11, 36, 11, 890526))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-02-05 14:36:11 [error    ] Error seeding zones: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum zone_type: "RESTRICTED"
+[SQL: INSERT INTO zones (id, name, floor, zone_type, polygon, color, is_active, created_at, updated_at) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::zone_type, $5::JSONB, $6::VARCHAR, $7::BOOLEAN, $8::TIMESTAMP WITH TIME ZONE, $9::TIMESTAMP WITH TIME ZONE)]
+[parameters: (UUID('c8b4741f-2641-43d3-8494-f99be08490e4'), 'Restricted Area - Server Room', '1', 'RESTRICTED', '[{"x": 900.0, "y": 900.0}, {"x": 1000.0, "y": 900.0}, {"x": 1000.0, "y": 1000.0}, {"x": 900.0, "y": 1000.0}]', '#FF0000', True, datetime.datetime(2026, 2, 5, 11, 36, 11, 890517), datetime.datetime(2026, 2, 5, 11, 36, 11, 890526))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)

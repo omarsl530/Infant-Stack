@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-02-05T13:44:35.376550+00:00",
+  "hardware_simulation": true,
+  "simulation_control_method": "http_control",
+  "backend_responsive": true,
+  "backend_rtls_processing": true,
+  "db_persistence": "Yes (inferred from API responses)",
+  "websocket_available": true,
+  "alarm_service_healthy": true,
+  "security_gate_logic": "Healthy",
+  "tests": [
+    {
+      "name": "Movement Tracking",
+      "result": "TestResult.PASS",
+      "reason": "Infant location updated to Zone_B in 25ms",
+      "evidence": {
+        "request_url": "http://localhost:8000/location/infant/Infant_01",
+        "request_body": null,
+        "response_code": null,
+        "response_body": "{\"id\": \"2e7a8088-2ea4-401c-b2f5-ae8c8d44d8be\", \"tag_id\": \"Infant_01\", \"asset_type\": \"infant\", \"x\": 10.0, \"y\": 20.0, \"z\": 0.0, \"floor\": \"Zone_B\", \"accuracy\": 0.5, \"battery_pct\": 85, \"gateway_id\": null, \"rssi\": -55, \"timestamp\": \"2026-02-05T13:44:36.718858Z\"}",
+        "websocket_messages": [],
+        "timing_ms": 24.990081787109375,
+        "error_message": null
+      },
+      "duration_seconds": 0.09209179878234863
+    },
+    {
+      "name": "Tamper Alert",
+      "result": "TestResult.PASS",
+      "reason": "ALARM detected via polling in 68ms",
+      "evidence": {
+        "request_url": "http://localhost:8000/api/v1/alerts/",
+        "request_body": null,
+        "response_code": null,
+        "response_body": "{\"id\": \"8f11f5aa-26bb-4f90-8531-3b549571c705\", \"alert_type\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_01 (infant) detected in Restricted Zone: Restricted Area - Server Room\", \"tag_id\": \"Infant_01\", \"acknowledged\": false, \"created_at\": \"2026-02-05T13:44:37.843852Z\"}",
+        "websocket_messages": [
+          "{\"type\": \"initial\", \"alerts\": [{\"id\": \"8f11f5aa-26bb-4f90-8531-3b549571c705\", \"alertType\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_01 (infant) detected in Restricted Zone: Restricted Area - Server Room\", \"tagId\": \"Infant_01\", \"acknowledged\": false, \"createdAt\": \"2026-02-05T13:44:37.843852+00:00\"}, {\"id\": \"0c9197fd-dd33-4d43-87b4-43627a7dd3cf\", \"alertType\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_0"
+        ],
+        "timing_ms": 68.24517250061035,
+        "error_message": null
+      },
+      "duration_seconds": 15.478842735290527
+    },
+    {
+      "name": "Gate Authorization Security",
+      "result": "TestResult.PASS",
+      "reason": "Correctly rejected with authorized=false (reason: verification_not_implemented)",
+      "evidence": {
+        "request_url": "http://localhost:8000/api/v1/pairings/verify-exit",
+        "request_body": "{\"infant_tag_id\": \"Infant_01\", \"mother_tag_id\": \"Mother_WRONG_99\"}",
+        "response_code": 200,
+        "response_body": "{\"authorized\": false, \"reason\": \"verification_not_implemented\", \"infant_tag\": \"Infant_01\", \"mother_tag\": \"Mother_WRONG_99\", \"gate\": \"Gate_01\"}",
+        "websocket_messages": [],
+        "timing_ms": null,
+        "error_message": null
+      },
+      "duration_seconds": 0.010499000549316406
+    }
+  ],
+  "all_passed": true,
+  "critical_issues": [],
+  "exit_code": 0,
+  "exit_code_meaning": "All tests passed"
+}

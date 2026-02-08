@@ -1,0 +1,33 @@
+2026-02-05 15:53:42 [info     ] Connecting to DB...
+Enum Type: alert_severity
+  Labels: ['INFO', 'WARNING', 'CRITICAL']
+Enum Type: alertseverity
+  Labels: ['INFO', 'WARNING', 'CRITICAL']
+Enum Type: camera_status
+  Labels: ['online', 'offline', 'error']
+Enum Type: camerastatus
+  Labels: ['ONLINE', 'OFFLINE', 'ERROR']
+Enum Type: configtype
+  Labels: ['STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'JSON']
+Enum Type: gate_event_result
+  Labels: ['GRANTED', 'DENIED']
+Enum Type: gate_event_type
+  Labels: ['badge_scan', 'gate_state', 'forced', 'held_open']
+Enum Type: gate_state
+  Labels: ['OPEN', 'CLOSED', 'FORCED_OPEN', 'HELD_OPEN', 'UNKNOWN']
+Enum Type: gateeventresult
+  Labels: ['GRANTED', 'DENIED']
+Enum Type: gateeventtype
+  Labels: ['BADGE_SCAN', 'GATE_STATE', 'FORCED', 'HELD_OPEN']
+Enum Type: pairing_status
+  Labels: ['ACTIVE', 'DISCHARGED', 'SUSPENDED']
+Enum Type: role
+  Labels: ['ADMIN', 'NURSE', 'SECURITY', 'VIEWER']
+Enum Type: tag_status
+  Labels: ['ACTIVE', 'INACTIVE', 'ALERT', 'MAINTENANCE']
+Enum Type: user_role
+  Labels: ['admin', 'nurse', 'security', 'viewer']
+Enum Type: zone_type
+  Labels: ['authorized', 'restricted', 'exit']
+Enum Type: zonetype
+  Labels: ['AUTHORIZED', 'RESTRICTED', 'EXIT']

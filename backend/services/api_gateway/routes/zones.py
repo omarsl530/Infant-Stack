@@ -31,7 +31,7 @@ class ZoneResponse(BaseModel):
     name: str
     floor: str
     zone_type: str
-    polygon: dict  # List of {x, y} points
+    polygon: list[dict]  # List of {x, y} points
     color: str | None = None
     is_active: bool
     created_at: datetime
@@ -53,7 +53,7 @@ class ZoneCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     floor: str = Field(..., min_length=1, max_length=20)
     zone_type: str = Field(...)  # authorized, restricted, exit
-    polygon: dict = Field(...)  # List of {x, y} points
+    polygon: list[dict] = Field(...)  # List of {x, y} points
     color: str | None = Field(None, max_length=20)
 
 
@@ -62,7 +62,7 @@ class ZoneUpdate(BaseModel):
 
     name: str | None = Field(None, min_length=1, max_length=100)
     zone_type: str | None = None
-    polygon: dict | None = None
+    polygon: list[dict] | None = None
     color: str | None = Field(None, max_length=20)
     is_active: bool | None = None
 
