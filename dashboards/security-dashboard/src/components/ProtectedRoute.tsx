@@ -8,6 +8,8 @@
 import { ReactNode, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 
+const HOME_DASHBOARD_URL = "http://localhost:3003";
+
 interface ProtectedRouteProps {
   children: ReactNode;
   allowedRoles?: string[];

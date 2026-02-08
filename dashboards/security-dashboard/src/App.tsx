@@ -224,7 +224,7 @@ export default function App() {
   // Stats
   const activeAlerts = alerts.filter((a) => !a.acknowledged).length;
   const criticalAlerts = alerts.filter(
-    (a) => a.severity === "critical" && !a.acknowledged,
+    (a) => (a.severity || "").toLowerCase() === "critical" && !a.acknowledged,
   ).length;
   const openGates = gates.filter(
     (g) => g.state === "OPEN" || g.state === "HELD_OPEN",

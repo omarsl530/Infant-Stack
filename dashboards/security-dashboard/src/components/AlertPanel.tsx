@@ -61,7 +61,9 @@ function AlertItem({
   onEscalate?: () => void;
   onClick?: () => void;
 }) {
-  const config = severityConfig[alert.severity];
+  // Normalize severity to lowercase and provide fallback
+  const severityStr = (alert.severity || "info").toLowerCase() as AlertSeverity;
+  const config = severityConfig[severityStr] || severityConfig.info;
 
   return (
     <div
@@ -74,9 +76,9 @@ function AlertItem({
             <span className="text-sm">{config.icon}</span>
             <span
               className={`text-xs font-bold uppercase tracking-wider ${
-                alert.severity === "critical"
+                severityStr === "critical"
                   ? "text-red-400"
-                  : alert.severity === "warning"
+                  : severityStr === "warning"
                     ? "text-amber-400"
                     : "text-cyan-400"
               }`}
@@ -85,12 +87,12 @@ function AlertItem({
             </span>
             <span className="text-xs text-slate-500">•</span>
             <span className="text-xs text-slate-400">
-              {formatTimestamp(alert.timestamp)}
+              {formatTimestamp(alert.timestamp || new Date().toISOString())}
             </span>
           </div>
 
           <p className="font-medium text-sm truncate">
-            {alert.type.replace(/_/g, " ")}
+            {(alert.type || "UNKNOWN_ALERT").replace(/_/g, " ")}
           </p>
           <p className="text-sm text-slate-400 mt-1 line-clamp-2">
             {alert.message}
@@ -123,7 +125,7 @@ function AlertItem({
             </button>
           )}
 
-          {alert.severity === "critical" &&
+          {severityStr === "critical" &&
             !alert.escalatedAt &&
             onEscalate && (
               <button
@@ -168,10 +170,10 @@ export function AlertPanel({
   const hiddenCount = alerts.length - maxVisible;
 
   const criticalCount = alerts.filter(
-    (a) => a.severity === "critical" && !a.acknowledged,
+    (a) => (a.severity || "").toLowerCase() === "critical" && !a.acknowledged,
   ).length;
   const warningCount = alerts.filter(
-    (a) => a.severity === "warning" && !a.acknowledged,
+    (a) => (a.severity || "").toLowerCase() === "warning" && !a.acknowledged,
   ).length;
 
   return (

@@ -35,13 +35,17 @@ const oidcConfig: AuthProviderProps = {
   monitorSession: true, // Enable listening for session changes
 };
 
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider {...oidcConfig}>
-      <ProtectedRoute allowedRoles={["security", "admin"]}>
-        <App />
-      </ProtectedRoute>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider {...oidcConfig}>
+        <ProtectedRoute allowedRoles={["security", "admin"]}>
+          <App />
+        </ProtectedRoute>
+      </AuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 

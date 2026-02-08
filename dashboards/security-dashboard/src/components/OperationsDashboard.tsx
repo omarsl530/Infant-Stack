@@ -49,9 +49,9 @@ export function OperationsDashboard({
 
   const activeAlerts = alerts.filter((a) => !a.acknowledged);
   const alertSeverity = {
-    high: activeAlerts.filter((a) => a.severity === "critical").length,
-    medium: activeAlerts.filter((a) => a.severity === "warning").length,
-    low: activeAlerts.filter((a) => a.severity === "info").length,
+    high: activeAlerts.filter((a) => (a.severity || "").toLowerCase() === "critical").length,
+    medium: activeAlerts.filter((a) => (a.severity || "").toLowerCase() === "warning").length,
+    low: activeAlerts.filter((a) => (a.severity || "").toLowerCase() === "info").length,
   };
 
   return (

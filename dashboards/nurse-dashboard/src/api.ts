@@ -209,7 +209,7 @@ export async function fetchAlerts(): Promise<AlertAPI[]> {
 }
 
 export async function dismissAlert(alertId: string): Promise<void> {
-  const response = await authFetch(`${API_BASE}/alerts/${alertId}/`, {
+  const response = await authFetch(`${API_BASE}/alerts/${alertId}`, {
     method: "DELETE",
   });
   await handleResponse<{ status: string }>(response);

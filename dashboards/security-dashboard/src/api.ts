@@ -17,13 +17,37 @@ const API_BASE = "/api/v1";
 // Helper Functions
 // =============================================================================
 
+// Helper to get the OIDC user from session storage
+function getStoredUser() {
+  // Try exact key first - constructed based on standard oidc-client-ts pattern
+  // But safest is to search for it since we don't have access to the exact config object here easily
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (key && key.startsWith("oidc.user:")) {
+      try {
+        const stored = sessionStorage.getItem(key);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to parse stored user", e);
+      }
+    }
+  }
+  return null;
+}
+
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
+  const user = getStoredUser();
+  const token = user?.access_token;
+
+  const headers = new Headers(options?.headers || {});
+  headers.set("Content-Type", "application/json");
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -31,6 +55,11 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
       .json()
       .catch(() => ({ message: "Unknown error" }));
     throw new Error(error.message || `HTTP ${response.status}`);
+  }
+
+  // Handle 204 No Content
+  if (response.status === 204) {
+    return {} as T;
   }
 
   return response.json();
@@ -118,10 +147,9 @@ export async function fetchTagHistory(
 // =============================================================================
 
 export async function fetchGates(): Promise<Gate[]> {
-  const response = await fetchJSON<{ items: Gate[]; total: number }>(
-    `${API_BASE}/gates`,
-  );
-  return response.items;
+  const response = await fetchJSON<any>(`${API_BASE}/gates`);
+  if (Array.isArray(response)) return response;
+  return response.items || [];
 }
 
 export async function fetchGateEvents(params?: {
@@ -179,10 +207,11 @@ export async function fetchAlerts(params?: {
     searchParams.set("acknowledged", String(params.acknowledged));
   // alerts.py doesn't seem to support from/to time filtering in list_alerts
 
-  const response = await fetchJSON<{ items: Alert[]; total: number }>(
+  const response = await fetchJSON<any>(
     `${API_BASE}/alerts?${searchParams}`,
   );
-  return response.items;
+  if (Array.isArray(response)) return response;
+  return response.items || [];
 }
 
 export async function acknowledgeAlert(alertId: string): Promise<void> {
@@ -212,10 +241,11 @@ export async function escalateAlert(alertId: string): Promise<void> {
 
 export async function fetchZones(floor?: string): Promise<Zone[]> {
   const params = floor ? `?floor=${floor}` : "";
-  const response = await fetchJSON<{ items: Zone[]; total: number }>(
+  const response = await fetchJSON<any>(
     `${API_BASE}/zones${params}`,
   );
-  return response.items;
+  if (Array.isArray(response)) return response;
+  return response.items || [];
 }
 
 // =============================================================================
@@ -243,10 +273,9 @@ export async function getCameraSnapshot(cameraId: string): Promise<string> {
 // =============================================================================
 
 export async function fetchFloorplans(): Promise<Floorplan[]> {
-  const response = await fetchJSON<{ items: Floorplan[]; total: number }>(
-    `${API_BASE}/floorplans`,
-  );
-  return response.items;
+  const response = await fetchJSON<any>(`${API_BASE}/floorplans`);
+  if (Array.isArray(response)) return response;
+  return response.items || [];
 }
 
 // =============================================================================

@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_models.models import Alert
-from shared_libraries.auth import CurrentUser, require_admin, require_user_or_admin
+from shared_libraries.auth import CurrentUser, require_roles, require_user_or_admin
 from shared_libraries.database import get_db
 
 router = APIRouter()
@@ -79,7 +79,7 @@ async def list_alerts(
 async def acknowledge_alert(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(require_admin),  # Admin only
+    current_user: CurrentUser = Depends(require_roles(["admin", "security", "nurse"])),
 ) -> dict:
     """Acknowledge an alert."""
     result = await db.execute(select(Alert).where(Alert.id == alert_id))
@@ -102,7 +102,7 @@ async def acknowledge_alert(
 async def dismiss_alert(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(require_admin),  # Admin only
+    current_user: CurrentUser = Depends(require_roles(["admin", "security", "nurse"])),
 ) -> dict:
     """Dismiss (delete) an alert."""
     result = await db.execute(select(Alert).where(Alert.id == alert_id))
