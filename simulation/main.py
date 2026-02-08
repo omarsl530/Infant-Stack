@@ -51,7 +51,7 @@ except ImportError:
 # =============================================================================
 # Modify these values or set environment variables to customize the simulation.
 
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000/api/v1")
 NUM_INFANTS = int(os.environ.get("NUM_INFANTS", "50"))
 NUM_READERS = int(os.environ.get("NUM_READERS", "10"))
 NUM_ZONES = int(os.environ.get("NUM_ZONES", "10"))
@@ -555,7 +555,7 @@ class GateTerminal:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        url = f"{BACKEND_URL}/gate/authorizeMovement"
+        url = f"{BACKEND_URL}/gates/authorizeMovement"
         self.logger.info(f"Requesting authorization for {infant_uuid}")
         
         result = await http_request_with_retry(
@@ -713,7 +713,7 @@ class AlarmNode:
     
     async def poll_alarm_status(self) -> None:
         """Poll the backend for current alarm status."""
-        url = f"{BACKEND_URL}/alarms/status"
+        url = f"{BACKEND_URL}/alerts/status"
         
         result = await http_request_with_retry(
             self.session, "GET", url, logger=self.logger
@@ -833,7 +833,7 @@ class BiometricScanner:
             "template_base64": template
         }
         
-        url = f"{BACKEND_URL}/biometric/enrollInfant"
+        url = f"{BACKEND_URL}/biometric/enroll"
         self.logger.info(f"Enrolling {infant_uuid}")
         
         result = await http_request_with_retry(

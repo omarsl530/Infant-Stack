@@ -93,6 +93,91 @@ class RTLSLatestPositions(BaseModel):
 # =============================================================================
 
 
+class ReaderEventCreate(BaseModel):
+    """Request model for RTLS reader beacon sighting event."""
+
+    reader_id: str
+    tag_uuid: str
+    timestamp: datetime
+    zone_id: str
+    rssi: int
+
+
+class ReaderEventResponse(BaseModel):
+    """Response model for reader event ingestion."""
+
+    status: str
+    reader_id: str
+    tag_uuid: str
+    position_id: str | None = None
+
+
+@router.post("/readerEvent", response_model=ReaderEventResponse)
+async def create_reader_event(
+    event: ReaderEventCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Ingest a beacon sighting from an RTLS reader.
+
+    This is called by RTLS readers when they detect an infant tag beacon.
+    The zone_id is used as the floor identifier and position is estimated.
+    """
+    # Create simplified position record from reader event
+    # In production, trilateration from multiple readers would compute x,y
+    position = RTLSPosition(
+        tag_id=event.tag_uuid,
+        asset_type="infant",
+        x=0.0,  # Placeholder - would be calculated from trilateration
+        y=0.0,  # Placeholder - would be calculated from trilateration
+        z=0.0,
+        floor=event.zone_id,
+        accuracy=5.0,  # Lower accuracy for single-reader estimate
+        battery_pct=100,
+        gateway_id=event.reader_id,
+        rssi=event.rssi,
+    )
+    db.add(position)
+
+    # Check geofence alerts
+    alerts = await check_geofence(
+        db,
+        event.tag_uuid,
+        "infant",
+        0.0,
+        0.0,
+        event.zone_id,
+    )
+
+    await db.commit()
+    await db.refresh(position)
+
+    # Broadcast position update via WebSocket
+    await broadcast_position_update(
+        {
+            "id": str(position.id),
+            "tagId": position.tag_id,
+            "assetType": position.asset_type,
+            "zone": event.zone_id,
+            "rssi": event.rssi,
+            "readerId": event.reader_id,
+            "floor": position.floor,
+            "timestamp": position.timestamp.isoformat(),
+        }
+    )
+
+    # Broadcast any triggered alerts
+    for alert in alerts:
+        await broadcast_alert(serialize_alert(alert))
+
+    return ReaderEventResponse(
+        status="received",
+        reader_id=event.reader_id,
+        tag_uuid=event.tag_uuid,
+        position_id=str(position.id),
+    )
+
+
 @router.post(
     "/positions",
     response_model=RTLSPositionResponse,

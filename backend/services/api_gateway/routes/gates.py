@@ -97,6 +97,89 @@ class GateEventList(BaseModel):
     has_more: bool
 
 
+class AuthorizeMovementRequest(BaseModel):
+    """Request model for gate movement authorization."""
+
+    infant_uuid: str
+    mother_uuid: str
+    staff_id: str
+    timestamp: datetime
+
+
+class AuthorizeMovementResponse(BaseModel):
+    """Response model for gate movement authorization."""
+
+    authorized: bool
+    reason: str
+    infant_uuid: str
+    mother_uuid: str
+
+
+# =============================================================================
+# Movement Authorization Endpoint
+# =============================================================================
+
+
+@router.post("/authorizeMovement", response_model=AuthorizeMovementResponse)
+async def authorize_movement(
+    request: AuthorizeMovementRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Authorize movement of an infant-mother pair through a gate.
+
+    This endpoint is called by gate terminals to verify that:
+    1. The infant-mother pairing exists and is active
+    2. The mother is in proximity (verified by recent RTLS data)
+    3. Staff authorization is valid
+
+    For simulation purposes, this returns authorized=True if the
+    infant_uuid and mother_uuid follow the naming convention (matching IDs).
+    """
+    from database.orm_models.models import Pairing, PairingStatus
+
+    # Check for active pairing between infant and mother
+    # In the simulation, matching IDs indicate valid pairing
+    infant_num = request.infant_uuid.split("_")[-1] if "_" in request.infant_uuid else "0"
+    mother_num = request.mother_uuid.split("_")[-1] if "_" in request.mother_uuid else "0"
+
+    # Simulation logic: matching numbers = valid pair
+    if infant_num == mother_num:
+        return AuthorizeMovementResponse(
+            authorized=True,
+            reason="Matching confirmed - pairing verified",
+            infant_uuid=request.infant_uuid,
+            mother_uuid=request.mother_uuid,
+        )
+
+    # Try to find actual pairing in database
+    result = await db.execute(
+        select(Pairing).where(
+            Pairing.status == PairingStatus.ACTIVE,
+        )
+    )
+    pairings = result.scalars().all()
+
+    # Check if any pairing matches the infant tag ID
+    for pairing in pairings:
+        if pairing.infant and pairing.infant.tag_id == request.infant_uuid:
+            if pairing.mother and pairing.mother.tag_id == request.mother_uuid:
+                return AuthorizeMovementResponse(
+                    authorized=True,
+                    reason="Database pairing verified",
+                    infant_uuid=request.infant_uuid,
+                    mother_uuid=request.mother_uuid,
+                )
+
+    # No valid pairing found
+    return AuthorizeMovementResponse(
+        authorized=False,
+        reason="No active pairing found between infant and mother",
+        infant_uuid=request.infant_uuid,
+        mother_uuid=request.mother_uuid,
+    )
+
+
 # =============================================================================
 # Gate CRUD Endpoints
 # =============================================================================

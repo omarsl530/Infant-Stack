@@ -2,6 +2,7 @@
 
 from . import (
     alerts,
+    biometric,
     cameras,
     gates,
     health,
@@ -17,6 +18,7 @@ from . import (
 
 __all__ = [
     "alerts",
+    "biometric",
     "cameras",
     "gates",
     "health",

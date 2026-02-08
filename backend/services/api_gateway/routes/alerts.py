@@ -38,6 +38,56 @@ class AlertList(BaseModel):
     total: int
 
 
+class AlarmStatusResponse(BaseModel):
+    """Response model for alarm status polling."""
+
+    alarm_active: bool
+    source: str | None = None
+    alert_count: int = 0
+
+
+@router.get("/status", response_model=AlarmStatusResponse)
+async def get_alarm_status(
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get current alarm status for alarm nodes.
+
+    Returns alarm_active=True if there are any unacknowledged CRITICAL alerts.
+    This endpoint is polled by alarm/siren nodes to determine if they should activate.
+    """
+    from database.orm_models.models import AlertSeverity
+
+    # Query for unacknowledged CRITICAL alerts
+    result = await db.execute(
+        select(Alert)
+        .where(Alert.acknowledged == False)
+        .where(Alert.severity == AlertSeverity.CRITICAL)
+        .order_by(Alert.created_at.desc())
+        .limit(1)
+    )
+    critical_alert = result.scalar_one_or_none()
+
+    # Count all unacknowledged alerts
+    count_result = await db.execute(
+        select(func.count(Alert.id)).where(Alert.acknowledged == False)
+    )
+    alert_count = count_result.scalar() or 0
+
+    if critical_alert:
+        return AlarmStatusResponse(
+            alarm_active=True,
+            source=f"{critical_alert.tag_id}_{critical_alert.alert_type}" if critical_alert.tag_id else critical_alert.alert_type,
+            alert_count=alert_count,
+        )
+
+    return AlarmStatusResponse(
+        alarm_active=False,
+        source=None,
+        alert_count=alert_count,
+    )
+
+
 @router.get("/", response_model=AlertList)
 async def list_alerts(
     acknowledged: bool | None = False,

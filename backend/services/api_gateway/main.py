@@ -19,6 +19,7 @@ sys.path.insert(0, str(__file__).rsplit("/", 3)[0])
 from services.api_gateway.routes import (
     alerts,
     audit,
+    biometric,
     cameras,
     config,
     gates,
@@ -139,6 +140,9 @@ app.include_router(
 )
 app.include_router(
     audit.router, prefix=f"{settings.api_prefix}/audit", tags=["Security"]
+)
+app.include_router(
+    biometric.router, prefix=f"{settings.api_prefix}/biometric", tags=["Biometric"]
 )
 
 # Admin Dashboard routes

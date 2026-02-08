@@ -208,3 +208,71 @@ async def delete_infant(
     # Delete infant
     await db.delete(infant)
     await db.commit()
+
+
+# =============================================================================
+# Tamper Event Endpoint (for simulation)
+# =============================================================================
+
+
+class TamperEventCreate(BaseModel):
+    """Request model for tamper event from infant tag."""
+
+    zone_id: str
+    battery: float
+    timestamp: datetime
+
+
+class TamperEventResponse(BaseModel):
+    """Response model for tamper event."""
+
+    status: str
+    tag_id: str
+    alert_id: str | None = None
+
+
+@router.post("/{tag_id}/tamper", response_model=TamperEventResponse)
+async def report_tamper(
+    tag_id: str,
+    event: TamperEventCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Report a tamper event from an infant tag.
+
+    This is called when an infant tag detects tampering (e.g., band cut or removed).
+    Creates a CRITICAL alert and broadcasts via WebSocket.
+    """
+    from database.orm_models.models import Alert, AlertSeverity
+    from services.api_gateway.routes.websocket import broadcast_alert, serialize_alert
+
+    # Find the infant by tag_id (or create alert anyway)
+    result = await db.execute(select(Infant).where(Infant.tag_id == tag_id))
+    infant = result.scalar_one_or_none()
+
+    # Update infant status to ALERT if found
+    if infant:
+        infant.tag_status = TagStatus.ALERT
+        await db.flush()
+
+    # Create CRITICAL alert
+    alert = Alert(
+        alert_type="TAMPER",
+        severity=AlertSeverity.CRITICAL,
+        message=f"Tamper detected on tag {tag_id} in zone {event.zone_id}",
+        tag_id=tag_id,
+        acknowledged=False,
+    )
+    db.add(alert)
+    await db.commit()
+    await db.refresh(alert)
+
+    # Broadcast alert via WebSocket
+    await broadcast_alert(serialize_alert(alert))
+
+    return TamperEventResponse(
+        status="alert_created",
+        tag_id=tag_id,
+        alert_id=str(alert.id),
+    )
+
