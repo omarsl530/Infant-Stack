@@ -1,0 +1,115 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - heading "Infant-Stack" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Security Dashboard
+      - navigation [ref=e13]:
+        - button "Live Map" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+          - generic [ref=e17]: Live Map
+        - button "Gates" [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+          - generic [ref=e21]: Gates
+        - button "Cameras" [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+          - generic [ref=e25]: Cameras
+        - button "Events" [ref=e26] [cursor=pointer]:
+          - img [ref=e27]
+          - generic [ref=e29]: Events
+        - button "Operations" [ref=e30] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e33]: Operations
+      - generic [ref=e35]:
+        - img [ref=e36]
+        - generic [ref=e38]: Reconnecting...
+  - main [ref=e39]:
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - button [ref=e43] [cursor=pointer]:
+          - img [ref=e44]
+        - heading "Live Map" [level=2] [ref=e46]
+      - generic [ref=e47]:
+        - generic [ref=e50]: OFFLINE
+        - generic [ref=e51]:
+          - paragraph [ref=e52]: 12:58:58 AM
+          - paragraph [ref=e53]: 2/9/2026
+        - button "Back to Hub" [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+        - button [ref=e57] [cursor=pointer]:
+          - img [ref=e58]
+        - button "Sign Out" [ref=e61] [cursor=pointer]:
+          - img [ref=e62]
+    - generic [ref=e64]:
+      - generic [ref=e65]:
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - paragraph [ref=e69]: Active Tags
+            - paragraph [ref=e70]: "0"
+          - img [ref=e72]
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - paragraph [ref=e77]: Active Alerts
+            - paragraph [ref=e78]: "0"
+          - img [ref=e80]
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - paragraph [ref=e85]: Gates Open
+            - paragraph [ref=e86]: 0/0
+          - img [ref=e88]
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - paragraph [ref=e93]: Cameras Online
+            - paragraph [ref=e94]: 0/0
+          - img [ref=e96]
+      - generic [ref=e98]:
+        - generic [ref=e99]:
+          - generic [ref=e101] [cursor=pointer]:
+            - checkbox "Show Heatmap" [ref=e102]
+            - generic [ref=e103]: Show Heatmap
+          - generic [ref=e106]:
+            - paragraph [ref=e107]: No Floorplan Selected
+            - paragraph [ref=e108]: Select a floor to view the map
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - generic [ref=e112]:
+                  - generic [ref=e113]: Range Start
+                  - textbox [ref=e114]: 2026-02-08T23:58
+                - generic [ref=e115]: to
+                - generic [ref=e116]:
+                  - generic [ref=e117]: Range End
+                  - textbox [ref=e118]: 2026-02-09T00:58
+              - generic [ref=e119]:
+                - button "Back 10s" [disabled] [ref=e120]:
+                  - img [ref=e121]
+                - button [disabled] [ref=e123]:
+                  - img [ref=e124]
+                - button "Forward 10s" [disabled] [ref=e126]:
+                  - img [ref=e127]
+                - combobox [disabled] [ref=e129]:
+                  - option "0.5x"
+                  - option "1x" [selected]
+                  - option "2x"
+                  - option "5x"
+                  - option "10x"
+              - generic [ref=e130]:
+                - button "LIVE" [ref=e131] [cursor=pointer]:
+                  - img [ref=e132]
+                  - generic [ref=e134]: LIVE
+                - button "Export" [ref=e136] [cursor=pointer]
+            - generic [ref=e140]:
+              - generic [ref=e141]: 11:58:58 PM
+              - generic [ref=e142]: 12:58:58 AM
+        - generic [ref=e145]:
+          - heading "Active Alerts" [level=3] [ref=e147]
+          - generic [ref=e149]:
+            - img [ref=e151]
+            - paragraph [ref=e153]: All Clear
+            - paragraph [ref=e154]: No active alerts
+```

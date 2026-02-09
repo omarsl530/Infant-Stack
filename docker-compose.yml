@@ -230,8 +230,8 @@ services:
       - "3000:3000"
     volumes:
       - ./dashboards:/app
-      - /app/nurse-dashboard/node_modules
-      - /app/node_modules
+      # - /app/nurse-dashboard/node_modules
+      # - /app/node_modules
     command: sh -c "cd nurse-dashboard && npm install && npm run dev -- --host 0.0.0.0"
     environment:
       - NODE_ENV=development
@@ -248,8 +248,8 @@ services:
       - "3001:3001"
     volumes:
       - ./dashboards:/app
-      - /app/security-dashboard/node_modules
-      - /app/node_modules
+      # - /app/security-dashboard/node_modules
+      # - /app/node_modules
     command: sh -c "cd security-dashboard && npm install && npm run dev -- --host 0.0.0.0"
     environment:
       - NODE_ENV=development
@@ -266,8 +266,8 @@ services:
       - "3002:3002"
     volumes:
       - ./dashboards:/app
-      - /app/admin-dashboard/node_modules
-      - /app/node_modules
+      # - /app/admin-dashboard/node_modules
+      # - /app/node_modules
     command: sh -c "cd admin-dashboard && npm install && npm run dev -- --host 0.0.0.0"
     environment:
       - NODE_ENV=development
@@ -285,8 +285,8 @@ services:
       - "3003:3003"
     volumes:
       - ./dashboards:/app
-      - /app/home-dashboard/node_modules
-      - /app/node_modules
+      # - /app/home-dashboard/node_modules
+      # - /app/node_modules
     command: sh -c "cd home-dashboard && npm install && npm run dev -- --host 0.0.0.0"
     environment:
       - NODE_ENV=development

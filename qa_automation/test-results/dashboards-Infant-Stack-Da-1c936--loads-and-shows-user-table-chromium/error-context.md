@@ -1,0 +1,159 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Admin Dashboard" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Infant Security System
+    - navigation [ref=e8]:
+      - button "Users" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+        - generic [ref=e12]: Users
+      - button "Roles" [ref=e13] [cursor=pointer]:
+        - img [ref=e14]
+        - generic [ref=e16]: Roles
+      - button "Audit Logs" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+        - generic [ref=e20]: Audit Logs
+      - button "Zones" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e24]: Zones
+      - button "Configuration" [ref=e25] [cursor=pointer]:
+        - img [ref=e26]
+        - generic [ref=e29]: Configuration
+      - button "Statistics" [ref=e30] [cursor=pointer]:
+        - img [ref=e31]
+        - generic [ref=e33]: Statistics
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e36]: OS
+        - generic [ref=e37]:
+          - paragraph [ref=e38]: Omar Salem
+          - paragraph [ref=e39]: omarsl530@gmail.com
+      - button "Back to Hub" [ref=e40] [cursor=pointer]:
+        - img [ref=e41]
+        - text: Back to Hub
+      - button "Sign Out" [ref=e43] [cursor=pointer]:
+        - img [ref=e44]
+        - text: Sign Out
+  - main [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - heading "Users" [level=2] [ref=e49]
+        - paragraph [ref=e50]: Monday, February 9, 2026
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - paragraph [ref=e53]: Total Users
+          - paragraph [ref=e54]: "4"
+        - generic [ref=e55]:
+          - paragraph [ref=e56]: Active Sessions
+          - paragraph [ref=e57]: "1"
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - img [ref=e62]
+          - textbox "Search users..." [ref=e64]
+        - generic [ref=e65]:
+          - combobox [ref=e66] [cursor=pointer]:
+            - option "All Roles" [selected]
+            - option "admin"
+            - option "nurse"
+            - option "security"
+            - option "viewer"
+          - combobox [ref=e67] [cursor=pointer]:
+            - option "All Status" [selected]
+            - option "Active"
+            - option "Inactive"
+          - button "Add User" [ref=e68] [cursor=pointer]:
+            - img [ref=e69]
+            - text: Add User
+      - table [ref=e72]:
+        - rowgroup [ref=e73]:
+          - row "User Email Role Status Last Login Created Actions" [ref=e74]:
+            - columnheader "User" [ref=e75]
+            - columnheader "Email" [ref=e76]
+            - columnheader "Role" [ref=e77]
+            - columnheader "Status" [ref=e78]
+            - columnheader "Last Login" [ref=e79]
+            - columnheader "Created" [ref=e80]
+            - columnheader "Actions" [ref=e81]
+        - rowgroup [ref=e82]:
+          - row "viewer Active 2/5/2026, 1:48:12 PM 2/5/2026, 1:28:02 PM" [ref=e83]:
+            - cell [ref=e84]
+            - cell [ref=e87]
+            - cell "viewer" [ref=e88]:
+              - generic [ref=e89]: viewer
+            - cell "Active" [ref=e90]:
+              - generic [ref=e91]: Active
+            - cell "2/5/2026, 1:48:12 PM" [ref=e92]
+            - cell "2/5/2026, 1:28:02 PM" [ref=e93]
+            - cell [ref=e94]:
+              - generic [ref=e95]:
+                - button "Edit" [ref=e96] [cursor=pointer]:
+                  - img [ref=e97]
+                - button "Delete" [ref=e99] [cursor=pointer]:
+                  - img [ref=e100]
+                - button "Change Password" [ref=e102] [cursor=pointer]:
+                  - img [ref=e103]
+          - row "OS Omar Salem omarsl530@gmail.com admin Active 2/9/2026, 12:58:33 AM 2/3/2026, 1:45:16 AM" [ref=e105]:
+            - cell "OS Omar Salem" [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e108]: OS
+                - generic [ref=e109]: Omar Salem
+            - cell "omarsl530@gmail.com" [ref=e110]
+            - cell "admin" [ref=e111]:
+              - generic [ref=e112]: admin
+            - cell "Active" [ref=e113]:
+              - generic [ref=e114]: Active
+            - cell "2/9/2026, 12:58:33 AM" [ref=e115]
+            - cell "2/3/2026, 1:45:16 AM" [ref=e116]
+            - cell [ref=e117]:
+              - generic [ref=e118]:
+                - button "Edit" [ref=e119] [cursor=pointer]:
+                  - img [ref=e120]
+                - button "Delete" [ref=e122] [cursor=pointer]:
+                  - img [ref=e123]
+                - button "Change Password" [ref=e125] [cursor=pointer]:
+                  - img [ref=e126]
+          - row "NU Nurse User nurse@infantstack.com nurse Active Never 2/2/2026, 9:33:12 PM" [ref=e128]:
+            - cell "NU Nurse User" [ref=e129]:
+              - generic [ref=e130]:
+                - generic [ref=e131]: NU
+                - generic [ref=e132]: Nurse User
+            - cell "nurse@infantstack.com" [ref=e133]
+            - cell "nurse" [ref=e134]:
+              - generic [ref=e135]: nurse
+            - cell "Active" [ref=e136]:
+              - generic [ref=e137]: Active
+            - cell "Never" [ref=e138]
+            - cell "2/2/2026, 9:33:12 PM" [ref=e139]
+            - cell [ref=e140]:
+              - generic [ref=e141]:
+                - button "Edit" [ref=e142] [cursor=pointer]:
+                  - img [ref=e143]
+                - button "Protected User" [disabled] [ref=e145]:
+                  - img [ref=e146]
+                - button "Change Password" [ref=e148] [cursor=pointer]:
+                  - img [ref=e149]
+          - row "AU Admin User admin@infantstack.com admin Active 2/3/2026, 11:21:00 AM 2/2/2026, 9:33:12 PM" [ref=e151]:
+            - cell "AU Admin User" [ref=e152]:
+              - generic [ref=e153]:
+                - generic [ref=e154]: AU
+                - generic [ref=e155]: Admin User
+            - cell "admin@infantstack.com" [ref=e156]
+            - cell "admin" [ref=e157]:
+              - generic [ref=e158]: admin
+            - cell "Active" [ref=e159]:
+              - generic [ref=e160]: Active
+            - cell "2/3/2026, 11:21:00 AM" [ref=e161]
+            - cell "2/2/2026, 9:33:12 PM" [ref=e162]
+            - cell [ref=e163]:
+              - generic [ref=e164]:
+                - button "Edit" [ref=e165] [cursor=pointer]:
+                  - img [ref=e166]
+                - button "Protected User" [disabled] [ref=e168]:
+                  - img [ref=e169]
+                - button "Change Password" [ref=e171] [cursor=pointer]:
+                  - img [ref=e172]
+```

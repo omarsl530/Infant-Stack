@@ -1,0 +1,75 @@
+{
+  "cookies": [
+    {
+      "name": "AUTH_SESSION_ID",
+      "value": "cec1eb1e-74da-42b5-a1af-48110815744f",
+      "domain": "localhost",
+      "path": "/realms/infant-stack/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "AUTH_SESSION_ID_LEGACY",
+      "value": "cec1eb1e-74da-42b5-a1af-48110815744f",
+      "domain": "localhost",
+      "path": "/realms/infant-stack/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KEYCLOAK_IDENTITY",
+      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOGQ5ZWU3Mi00ZTlmLTRkMTgtYjZkMC04YThmYmZmMzJmNjgifQ.eyJleHAiOjE3NzA2MjM4ODgsImlhdCI6MTc3MDU4Nzg4OCwianRpIjoiY2RiOWY0YzktNDMzYi00MDJhLWJhNWItYzgzZWE0ZWE0MDZhIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9pbmZhbnQtc3RhY2siLCJzdWIiOiI5MjBhMDU4NS00Yjk2LTQ0ZWYtOTdjZC1lYWVkNjYxZGJhYTEiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInNpZCI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInN0YXRlX2NoZWNrZXIiOiJpWE9aeGhFTW5LWV9YanVvVXpkQy1iZzI3QlVsZXpyc283ZTVmdkw0UzBjIn0.sK7rfYad2Y3IJ-eBjGRTJX1tWcYEaLgvDsSkce3bPZQZntlm_JRt5U8ByDBz22uquYkbuFJ0EWmb9ybJoWkKPw",
+      "domain": "localhost",
+      "path": "/realms/infant-stack/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "KEYCLOAK_IDENTITY_LEGACY",
+      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOGQ5ZWU3Mi00ZTlmLTRkMTgtYjZkMC04YThmYmZmMzJmNjgifQ.eyJleHAiOjE3NzA2MjM4ODgsImlhdCI6MTc3MDU4Nzg4OCwianRpIjoiY2RiOWY0YzktNDMzYi00MDJhLWJhNWItYzgzZWE0ZWE0MDZhIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9pbmZhbnQtc3RhY2siLCJzdWIiOiI5MjBhMDU4NS00Yjk2LTQ0ZWYtOTdjZC1lYWVkNjYxZGJhYTEiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInNpZCI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInN0YXRlX2NoZWNrZXIiOiJpWE9aeGhFTW5LWV9YanVvVXpkQy1iZzI3QlVsZXpyc283ZTVmdkw0UzBjIn0.sK7rfYad2Y3IJ-eBjGRTJX1tWcYEaLgvDsSkce3bPZQZntlm_JRt5U8ByDBz22uquYkbuFJ0EWmb9ybJoWkKPw",
+      "domain": "localhost",
+      "path": "/realms/infant-stack/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KEYCLOAK_SESSION",
+      "value": "\"infant-stack/920a0585-4b96-44ef-97cd-eaed661dbaa1/cec1eb1e-74da-42b5-a1af-48110815744f\"",
+      "domain": "localhost",
+      "path": "/realms/infant-stack/",
+      "expires": 1770623888.388546,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "KEYCLOAK_SESSION_LEGACY",
+      "value": "\"infant-stack/920a0585-4b96-44ef-97cd-eaed661dbaa1/cec1eb1e-74da-42b5-a1af-48110815744f\"",
+      "domain": "localhost",
+      "path": "/realms/infant-stack/",
+      "expires": 1770623888.388928,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3003",
+      "localStorage": [
+        {
+          "name": "oidc.8dd7a529bfc2423db769b453f830cdd7",
+          "value": "{\"id\":\"8dd7a529bfc2423db769b453f830cdd7\",\"created\":1770587885,\"request_type\":\"si:r\",\"code_verifier\":\"446d3ed223564905a05e225161a787d2a124ea42197847409c5f20c8a6bdb01433d2b47cacbb4b5d8b7d65485e803ce6\",\"authority\":\"http://localhost:8080/realms/infant-stack\",\"client_id\":\"infant-stack-spa\",\"redirect_uri\":\"http://localhost:3003\",\"scope\":\"openid profile email roles\",\"extraTokenParams\":{}}"
+        }
+      ]
+    }
+  ]
+}
