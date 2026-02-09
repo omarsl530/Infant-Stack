@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "AUTH_SESSION_ID",
-      "value": "cec1eb1e-74da-42b5-a1af-48110815744f",
+      "value": "2a471c05-eeaa-47e1-b3ae-4734d35e2c55",
       "domain": "localhost",
       "path": "/realms/infant-stack/",
       "expires": -1,
@@ -12,7 +12,7 @@
     },
     {
       "name": "AUTH_SESSION_ID_LEGACY",
-      "value": "cec1eb1e-74da-42b5-a1af-48110815744f",
+      "value": "2a471c05-eeaa-47e1-b3ae-4734d35e2c55",
       "domain": "localhost",
       "path": "/realms/infant-stack/",
       "expires": -1,
@@ -22,7 +22,7 @@
     },
     {
       "name": "KEYCLOAK_IDENTITY",
-      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOGQ5ZWU3Mi00ZTlmLTRkMTgtYjZkMC04YThmYmZmMzJmNjgifQ.eyJleHAiOjE3NzA2MjM4ODgsImlhdCI6MTc3MDU4Nzg4OCwianRpIjoiY2RiOWY0YzktNDMzYi00MDJhLWJhNWItYzgzZWE0ZWE0MDZhIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9pbmZhbnQtc3RhY2siLCJzdWIiOiI5MjBhMDU4NS00Yjk2LTQ0ZWYtOTdjZC1lYWVkNjYxZGJhYTEiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInNpZCI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInN0YXRlX2NoZWNrZXIiOiJpWE9aeGhFTW5LWV9YanVvVXpkQy1iZzI3QlVsZXpyc283ZTVmdkw0UzBjIn0.sK7rfYad2Y3IJ-eBjGRTJX1tWcYEaLgvDsSkce3bPZQZntlm_JRt5U8ByDBz22uquYkbuFJ0EWmb9ybJoWkKPw",
+      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOGQ5ZWU3Mi00ZTlmLTRkMTgtYjZkMC04YThmYmZmMzJmNjgifQ.eyJleHAiOjE3NzA2NTg3NTIsImlhdCI6MTc3MDYyMjc1MiwianRpIjoiYzliYjgwY2QtY2YzOC00YjhjLWI0NjItOGE0ZjQ4MjU2NTEyIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9pbmZhbnQtc3RhY2siLCJzdWIiOiI5MjBhMDU4NS00Yjk2LTQ0ZWYtOTdjZC1lYWVkNjYxZGJhYTEiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6IjJhNDcxYzA1LWVlYWEtNDdlMS1iM2FlLTQ3MzRkMzVlMmM1NSIsInNpZCI6IjJhNDcxYzA1LWVlYWEtNDdlMS1iM2FlLTQ3MzRkMzVlMmM1NSIsInN0YXRlX2NoZWNrZXIiOiJNa292eHRRQ2gwUnBKdzdkNmlGQVlGZllORGIxRHVMXzhsVTBqQ01sYVUwIn0.EJ5bt3-cVfL0hNc6j5-LYVAxVUw2JWIjol271bf0KnuNV7BOOF2mfRE7l9MusmWYT5V80ssf8XmBrktPqaw8FA",
       "domain": "localhost",
       "path": "/realms/infant-stack/",
       "expires": -1,
@@ -32,7 +32,7 @@
     },
     {
       "name": "KEYCLOAK_IDENTITY_LEGACY",
-      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOGQ5ZWU3Mi00ZTlmLTRkMTgtYjZkMC04YThmYmZmMzJmNjgifQ.eyJleHAiOjE3NzA2MjM4ODgsImlhdCI6MTc3MDU4Nzg4OCwianRpIjoiY2RiOWY0YzktNDMzYi00MDJhLWJhNWItYzgzZWE0ZWE0MDZhIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9pbmZhbnQtc3RhY2siLCJzdWIiOiI5MjBhMDU4NS00Yjk2LTQ0ZWYtOTdjZC1lYWVkNjYxZGJhYTEiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInNpZCI6ImNlYzFlYjFlLTc0ZGEtNDJiNS1hMWFmLTQ4MTEwODE1NzQ0ZiIsInN0YXRlX2NoZWNrZXIiOiJpWE9aeGhFTW5LWV9YanVvVXpkQy1iZzI3QlVsZXpyc283ZTVmdkw0UzBjIn0.sK7rfYad2Y3IJ-eBjGRTJX1tWcYEaLgvDsSkce3bPZQZntlm_JRt5U8ByDBz22uquYkbuFJ0EWmb9ybJoWkKPw",
+      "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOGQ5ZWU3Mi00ZTlmLTRkMTgtYjZkMC04YThmYmZmMzJmNjgifQ.eyJleHAiOjE3NzA2NTg3NTIsImlhdCI6MTc3MDYyMjc1MiwianRpIjoiYzliYjgwY2QtY2YzOC00YjhjLWI0NjItOGE0ZjQ4MjU2NTEyIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9pbmZhbnQtc3RhY2siLCJzdWIiOiI5MjBhMDU4NS00Yjk2LTQ0ZWYtOTdjZC1lYWVkNjYxZGJhYTEiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6IjJhNDcxYzA1LWVlYWEtNDdlMS1iM2FlLTQ3MzRkMzVlMmM1NSIsInNpZCI6IjJhNDcxYzA1LWVlYWEtNDdlMS1iM2FlLTQ3MzRkMzVlMmM1NSIsInN0YXRlX2NoZWNrZXIiOiJNa292eHRRQ2gwUnBKdzdkNmlGQVlGZllORGIxRHVMXzhsVTBqQ01sYVUwIn0.EJ5bt3-cVfL0hNc6j5-LYVAxVUw2JWIjol271bf0KnuNV7BOOF2mfRE7l9MusmWYT5V80ssf8XmBrktPqaw8FA",
       "domain": "localhost",
       "path": "/realms/infant-stack/",
       "expires": -1,
@@ -42,20 +42,20 @@
     },
     {
       "name": "KEYCLOAK_SESSION",
-      "value": "\"infant-stack/920a0585-4b96-44ef-97cd-eaed661dbaa1/cec1eb1e-74da-42b5-a1af-48110815744f\"",
+      "value": "\"infant-stack/920a0585-4b96-44ef-97cd-eaed661dbaa1/2a471c05-eeaa-47e1-b3ae-4734d35e2c55\"",
       "domain": "localhost",
       "path": "/realms/infant-stack/",
-      "expires": 1770623888.388546,
+      "expires": 1770658752.06349,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
     },
     {
       "name": "KEYCLOAK_SESSION_LEGACY",
-      "value": "\"infant-stack/920a0585-4b96-44ef-97cd-eaed661dbaa1/cec1eb1e-74da-42b5-a1af-48110815744f\"",
+      "value": "\"infant-stack/920a0585-4b96-44ef-97cd-eaed661dbaa1/2a471c05-eeaa-47e1-b3ae-4734d35e2c55\"",
       "domain": "localhost",
       "path": "/realms/infant-stack/",
-      "expires": 1770623888.388928,
+      "expires": 1770658752.063559,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -66,8 +66,8 @@
       "origin": "http://localhost:3003",
       "localStorage": [
         {
-          "name": "oidc.8dd7a529bfc2423db769b453f830cdd7",
-          "value": "{\"id\":\"8dd7a529bfc2423db769b453f830cdd7\",\"created\":1770587885,\"request_type\":\"si:r\",\"code_verifier\":\"446d3ed223564905a05e225161a787d2a124ea42197847409c5f20c8a6bdb01433d2b47cacbb4b5d8b7d65485e803ce6\",\"authority\":\"http://localhost:8080/realms/infant-stack\",\"client_id\":\"infant-stack-spa\",\"redirect_uri\":\"http://localhost:3003\",\"scope\":\"openid profile email roles\",\"extraTokenParams\":{}}"
+          "name": "oidc.80c72232ae864564bff34a22a24d7166",
+          "value": "{\"id\":\"80c72232ae864564bff34a22a24d7166\",\"created\":1770622749,\"request_type\":\"si:r\",\"code_verifier\":\"6306041eade34889a87480af5c4bb388da1685ba23ec4fe68080723b214d7da6e93549560d3a4e299c7338848de44a98\",\"authority\":\"http://localhost:8080/realms/infant-stack\",\"client_id\":\"infant-stack-spa\",\"redirect_uri\":\"http://localhost:3003\",\"scope\":\"openid profile email roles\",\"extraTokenParams\":{}}"
         }
       ]
     }
