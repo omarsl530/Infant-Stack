@@ -290,7 +290,7 @@ class SimulationController:
     def __init__(
         self,
         backend_url: str,
-        simulation_path: str = "simulation/main.py",
+        simulation_path: str = "simulation_software/main.py",
         logger: logging.Logger = None
     ):
         self.backend_url = backend_url

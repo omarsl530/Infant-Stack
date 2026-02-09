@@ -51,4 +51,4 @@ Write-Host "Starting simulation..." -ForegroundColor Green
 Write-Host "(Press Ctrl+C to stop)" -ForegroundColor Gray
 Write-Host ""
 
-& $pythonCmd simulation/main.py
+& $pythonCmd simulation_software/main.py

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-05T13:44:35.376550+00:00",
+  "timestamp": "2026-02-09T08:01:30.466442+00:00",
   "hardware_simulation": true,
   "simulation_control_method": "http_control",
   "backend_responsive": true,
@@ -12,34 +12,34 @@
     {
       "name": "Movement Tracking",
       "result": "TestResult.PASS",
-      "reason": "Infant location updated to Zone_B in 25ms",
+      "reason": "Infant location updated to Zone_B in 66ms",
       "evidence": {
         "request_url": "http://localhost:8000/location/infant/Infant_01",
         "request_body": null,
         "response_code": null,
-        "response_body": "{\"id\": \"2e7a8088-2ea4-401c-b2f5-ae8c8d44d8be\", \"tag_id\": \"Infant_01\", \"asset_type\": \"infant\", \"x\": 10.0, \"y\": 20.0, \"z\": 0.0, \"floor\": \"Zone_B\", \"accuracy\": 0.5, \"battery_pct\": 85, \"gateway_id\": null, \"rssi\": -55, \"timestamp\": \"2026-02-05T13:44:36.718858Z\"}",
+        "response_body": "{\"id\": \"6d1f1ca6-a9ab-4039-ba3c-f8ef2859424e\", \"tag_id\": \"Infant_01\", \"asset_type\": \"infant\", \"x\": 10.0, \"y\": 20.0, \"z\": 0.0, \"floor\": \"Zone_B\", \"accuracy\": 0.5, \"battery_pct\": 85, \"gateway_id\": null, \"rssi\": -55, \"timestamp\": \"2026-02-09T08:01:31.350777Z\"}",
         "websocket_messages": [],
-        "timing_ms": 24.990081787109375,
+        "timing_ms": 66.05172157287598,
         "error_message": null
       },
-      "duration_seconds": 0.09209179878234863
+      "duration_seconds": 0.20836901664733887
     },
     {
       "name": "Tamper Alert",
       "result": "TestResult.PASS",
-      "reason": "ALARM detected via polling in 68ms",
+      "reason": "ALARM detected via polling in 95ms",
       "evidence": {
         "request_url": "http://localhost:8000/api/v1/alerts/",
         "request_body": null,
         "response_code": null,
-        "response_body": "{\"id\": \"8f11f5aa-26bb-4f90-8531-3b549571c705\", \"alert_type\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_01 (infant) detected in Restricted Zone: Restricted Area - Server Room\", \"tag_id\": \"Infant_01\", \"acknowledged\": false, \"created_at\": \"2026-02-05T13:44:37.843852Z\"}",
+        "response_body": "{\"id\": \"8d5b1400-2f1c-4623-ba22-2e46af9356f7\", \"alert_type\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_01 (infant) detected in Restricted Zone: Restricted Area - Server Room\", \"tag_id\": \"Infant_01\", \"acknowledged\": false, \"created_at\": \"2026-02-09T08:01:32.554150Z\"}",
         "websocket_messages": [
-          "{\"type\": \"initial\", \"alerts\": [{\"id\": \"8f11f5aa-26bb-4f90-8531-3b549571c705\", \"alertType\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_01 (infant) detected in Restricted Zone: Restricted Area - Server Room\", \"tagId\": \"Infant_01\", \"acknowledged\": false, \"createdAt\": \"2026-02-05T13:44:37.843852+00:00\"}, {\"id\": \"0c9197fd-dd33-4d43-87b4-43627a7dd3cf\", \"alertType\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_0"
+          "{\"type\": \"initial\", \"alerts\": [{\"id\": \"8d5b1400-2f1c-4623-ba22-2e46af9356f7\", \"alertType\": \"GEOFENCE_VIOLATION\", \"severity\": \"CRITICAL\", \"message\": \"Unauthorized access: Tag Infant_01 (infant) detected in Restricted Zone: Restricted Area - Server Room\", \"tagId\": \"Infant_01\", \"acknowledged\": false, \"createdAt\": \"2026-02-09T08:01:32.554150+00:00\"}], \"timestamp\": \"2026-02-09T08:01:32.821624\"}"
         ],
-        "timing_ms": 68.24517250061035,
+        "timing_ms": 94.66433525085449,
         "error_message": null
       },
-      "duration_seconds": 15.478842735290527
+      "duration_seconds": 10.336535692214966
     },
     {
       "name": "Gate Authorization Security",
@@ -54,7 +54,7 @@
         "timing_ms": null,
         "error_message": null
       },
-      "duration_seconds": 0.010499000549316406
+      "duration_seconds": 0.037516117095947266
     }
   ],
   "all_passed": true,
